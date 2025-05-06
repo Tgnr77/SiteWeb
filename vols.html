@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vols à venir - Zenith Airlines</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Charger les vols dynamiquement
+        document.addEventListener('DOMContentLoaded', function () {
+            const offersContainer = document.querySelector('.offers'); // Conteneur des vols
+            offersContainer.innerHTML = '<p>Chargement des vols...</p>'; // Message de chargement
+
+            // Effectuer une requête pour récupérer les vols
+            fetch('get_vols.php')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erreur lors de la récupération des données.');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    offersContainer.innerHTML = ''; // Effacer le message de chargement
+
+                    if (data.length > 0) {
+                        data.forEach(vol => {
+                            const volDiv = document.createElement('div');
+                            volDiv.classList.add('offer'); // Appliquer le style des offres
+
+                            volDiv.innerHTML = `
+                                <div class="offer-details">
+                                    <h3>${vol.origine} - ${vol.destination}</h3>
+                                    <p>Départ : ${new Date(vol.date_depart).toLocaleString()}</p>
+                                    <p>Arrivée : ${new Date(vol.date_arrivee).toLocaleString()}</p>
+                                    <p>Prix : ${vol.prix} €</p>
+                                    <button class="add-to-cart" data-id="${vol.id_vol}">Ajouter au panier</button>
+                                </div>
+                            `;
+                            offersContainer.appendChild(volDiv); // Ajouter chaque vol au conteneur
+                        });
+
+                        // Attacher les événements pour les boutons "Ajouter au panier"
+                        attachAddToCartEvents();
+                    } else {
+                        offersContainer.innerHTML = '<p>Aucun vol disponible pour le moment.</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur :', error);
+                    offersContainer.innerHTML = '<p>Erreur lors du chargement des vols. Veuillez réessayer plus tard.</p>';
+                });
+        });
+
+        // Fonction pour attacher les événements au bouton "Ajouter au panier"
+        function attachAddToCartEvents() {
+            const addToCartButtons = document.querySelectorAll('.add-to-cart');
+            addToCartButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const volId = this.dataset.id; // Récupérer l'ID du vol à partir de l'attribut data-id
+
+                    fetch('add_to_cart.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `id_vol=${volId}`
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                alert('Vol ajouté au panier avec succès !');
+                            } else {
+                                alert(data.error || 'Erreur inconnue.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Erreur réseau :', error);
+                            alert('Impossible d\'ajouter au panier.');
+                        });
+                });
+            });
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <img src="zenith.webp" alt="Logo Zenith Airlines">
+        </div>
+        <nav>
+            <a href="index.html">Accueil</a>
+            <a href="vols.html">Vols à venir</a>
+            <a href="reserver.html">Réserver un siège</a>
+            <a href="contact.html">Nous contacter</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h2>Vols à venir</h2>
+            <p>Découvrez nos prochaines destinations :</p>
+            <div class="offers">
+                <!-- Les vols seront insérés ici dynamiquement -->
+            </div>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2025 Zenith Airlines. Tous droits réservés.</p>
+    </footer>
+</body>
+</html>
