@@ -3,8 +3,9 @@
 include 'db.php';
 
 try {
-    // Requête pour récupérer tous les vols triés par date de départ
-    $query = $pdo->query("SELECT * FROM vols ORDER BY date_depart ASC");
+    // Requête pour récupérer tous les vols triés par date de départ avec la durée
+    // Calculée comme la différence entre la date d'arrivée et la date de départ
+    $query = $pdo->query("SELECT *,TIMEDIFF(date_arrivee, date_depart) AS duree FROM vols ORDER BY date_depart ASC");
 
     // Récupérer les résultats sous forme de tableau associatif
     $vols = $query->fetchAll(PDO::FETCH_ASSOC);

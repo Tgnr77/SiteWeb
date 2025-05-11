@@ -33,6 +33,8 @@
                                     <p>Départ : ${new Date(vol.date_depart).toLocaleString()}</p>
                                     <p>Arrivée : ${new Date(vol.date_arrivee).toLocaleString()}</p>
                                     <p>Prix : ${vol.prix} €</p>
+                                    <p>Compagnie : ${vol.compagnie}</p>
+                                    <p>Durée : ${vol.duree} heures</p>
                                     <button class="add-to-cart" data-id="${vol.id_vol}">Ajouter au panier</button>
                                 </div>
                             `;
