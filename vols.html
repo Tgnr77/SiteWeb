@@ -6,104 +6,110 @@
     <title>Vols à venir - Zenith Airlines</title>
     <link rel="stylesheet" href="styles.css">
     <script>
-        // Charger les vols dynamiquement
-        document.addEventListener('DOMContentLoaded', function () {
-            const offersContainer = document.querySelector('.offers'); // Conteneur des vols
-            offersContainer.innerHTML = '<p>Chargement des vols...</p>'; // Message de chargement
+  let volsData = [];
 
-            // Effectuer une requête pour récupérer les vols
-            fetch('get_vols.php')
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Erreur lors de la récupération des données.');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    offersContainer.innerHTML = ''; // Effacer le message de chargement
+  document.addEventListener('DOMContentLoaded', function () {
+    const offersContainer = document.querySelector('.offers');
+    offersContainer.innerHTML = '<p>Chargement des vols...</p>';
 
-                    if (data.length > 0) {
-                        data.forEach(vol => {
-                            const volDiv = document.createElement('div');
-                            volDiv.classList.add('offer'); // Appliquer le style des offres
+    fetch('get_vols.php')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Erreur lors de la récupération des données.');
+        }
+        return response.json();
+      })
+      .then(data => {
+        volsData = data; // ✅ rend le tableau accessible globalement
+        offersContainer.innerHTML = '';
 
-                            volDiv.innerHTML = `
-                                <div class="offer-details">
-                                    <h3>${vol.origine} - ${vol.destination}</h3>
-                                    <p>Départ : ${new Date(vol.date_depart).toLocaleString()}</p>
-                                    <p>Arrivée : ${new Date(vol.date_arrivee).toLocaleString()}</p>
-                                    <p>Prix : ${vol.prix} €</p>
-                                    <p>Compagnie : ${vol.compagnie}</p>
-                                    <p>Durée : ${vol.duree} heures</p>
-                                    <button class="add-to-cart" data-id="${vol.id_vol}">Ajouter au panier</button>
-                                    <button class="details-button" data-id="${JSON.stringify(vol)}">Détails</button>
-                                </div>
-                            `;
-                            offersContainer.appendChild(volDiv); // Ajouter chaque vol au conteneur
-                        });
+        if (data.length > 0) {
+          data.forEach(vol => {
+            const volDiv = document.createElement('div');
+            volDiv.classList.add('offer');
+            volDiv.innerHTML = `
+              <div class="offer-details">
+                <h3>${vol.origine} - ${vol.destination}</h3>
+                <p>Départ : ${new Date(vol.date_depart).toLocaleString()}</p>
+                <p>Arrivée : ${new Date(vol.date_arrivee).toLocaleString()}</p>
+                <p>Durée : ${vol.duree}</p>
+                <p>Prix : ${vol.prix} €</p>
+                <div class="buttons">
+                  <button class="add-to-cart" data-id="${vol.id_vol}">Ajouter au panier</button>
+                  <button class="details-button" data-id="${vol.id_vol}">Détails</button>
+                </div>
+              </div>
+            `;
+            offersContainer.appendChild(volDiv);
+          });
 
-                        // Attacher les événements pour les boutons "Ajouter au panier"
-                        attachAddToCartEvents();
-                        attachDetailsEvents();
-                    } else {
-                        offersContainer.innerHTML = '<p>Aucun vol disponible pour le moment.</p>';
-                    }
-                })
-                .catch(error => {
-                    console.error('Erreur :', error);
-                    offersContainer.innerHTML = '<p>Erreur lors du chargement des vols. Veuillez réessayer plus tard.</p>';
-                });
-        });
+          attachAddToCartEvents();
+          attachDetailsEvents();
+        } else {
+          offersContainer.innerHTML = '<p>Aucun vol disponible pour le moment.</p>';
+        }
+      })
+      .catch(error => {
+        console.error('Erreur :', error);
+        offersContainer.innerHTML = '<p>Erreur lors du chargement des vols. Veuillez réessayer plus tard.</p>';
+      });
+  });
 
-        // Fonction pour attacher les événements au bouton "Ajouter au panier"
-        function attachAddToCartEvents() {
-            const addToCartButtons = document.querySelectorAll('.add-to-cart');
-            addToCartButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const volId = this.dataset.id; // Récupérer l'ID du vol à partir de l'attribut data-id
+  function attachAddToCartEvents() {
+    const addToCartButtons = document.querySelectorAll('.add-to-cart');
+    addToCartButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        const volId = this.dataset.id;
 
-                    fetch('add_to_cart.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                        body: `id_vol=${volId}`
-                    })
-                        .then(response => response.json())
-                        .then(data => {
-                            if (data.success) {
-                                alert('Vol ajouté au panier avec succès !');
-                            } else {
-                                alert(data.error || 'Erreur inconnue.');
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Erreur réseau :', error);
-                            alert('Impossible d\'ajouter au panier.');
-                        });
-                });
-            });
+        fetch('add_to_cart.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `id_vol=${volId}`
+        })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              alert('Vol ajouté au panier avec succès !');
+            } else {
+              alert(data.error || 'Erreur inconnue.');
+            }
+          })
+          .catch(error => {
+            console.error('Erreur réseau :', error);
+            alert('Impossible d\'ajouter au panier.');
+          });
+      });
+    });
+  }
+
+  function attachDetailsEvents() {
+    const detailButtons = document.querySelectorAll('.details-button');
+    detailButtons.forEach(button => {
+      button.addEventListener('click', function () {
+        const volId = this.dataset.id;
+        const vol = volsData.find(v => v.id_vol == volId);
+
+        if (!vol) {
+          alert("Vol introuvable.");
+          return;
         }
 
-        // Fonction pour attacher les événements au bouton "Détails"
-        function attachDetailsEvents() {
-            const detailsButtons = document.querySelectorAll('.details-button');
-            detailsButtons.forEach(button => {
-                button.addEventListener('click', function () {
-                    const vol = JSON.parse(this.dataset.id); // Récupérer les détails du vol à partir de l'attribut data-id
-                    alert(
-                        'Détails du vol : \n' +
-                        'Origine : ' + vol.origine + '\n' +
-                        'Destination : ' + vol.destination + '\n' +
-                        'Départ : ' + new Date(vol.date_depart).toLocaleString() + '\n' +
-                        'Arrivée : ' + new Date(vol.date_arrivee).toLocaleString() + '\n' +
-                        'Prix : ' + vol.prix + ' €\n' +
-                        'Compagnie : ' + vol.compagnie + '\n' +
-                        'Durée : ' + vol.duree + ' heures\n' +
-                        'Nombre de passagers : ' + vol.nb_passagers + '\n'
-                    );
-                });
-            });
-        }
-    </script>
+        alert(
+          `Détails du vol :\n` +
+          `Origine : ${vol.origine}\n` +
+          `Destination : ${vol.destination}\n` +
+          `Départ : ${new Date(vol.date_depart).toLocaleString()}\n` +
+          `Arrivée : ${new Date(vol.date_arrivee).toLocaleString()}\n` +
+          `Durée : ${vol.duree}\n` +
+          `Prix : ${vol.prix} €\n` +
+          `Compagnie : ${vol.compagnie || 'Zenith Airlines'}\n` +
+          `Nombre de passagers : ${vol.nb_passagers || 'Non spécifié'}`
+        );
+      });
+    });
+  }
+</script>
+
 </head>
 <body>
     <header>
