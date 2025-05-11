@@ -36,6 +36,7 @@
                                     <p>Compagnie : ${vol.compagnie}</p>
                                     <p>Durée : ${vol.duree} heures</p>
                                     <button class="add-to-cart" data-id="${vol.id_vol}">Ajouter au panier</button>
+                                    <button class="details-button" data-id="${JSON.stringify(vol)}">Détails</button>
                                 </div>
                             `;
                             offersContainer.appendChild(volDiv); // Ajouter chaque vol au conteneur
@@ -43,6 +44,7 @@
 
                         // Attacher les événements pour les boutons "Ajouter au panier"
                         attachAddToCartEvents();
+                        attachDetailsEvents();
                     } else {
                         offersContainer.innerHTML = '<p>Aucun vol disponible pour le moment.</p>';
                     }
@@ -77,6 +79,27 @@
                             console.error('Erreur réseau :', error);
                             alert('Impossible d\'ajouter au panier.');
                         });
+                });
+            });
+        }
+
+        // Fonction pour attacher les événements au bouton "Détails"
+        function attachDetailsEvents() {
+            const detailsButtons = document.querySelectorAll('.details-button');
+            detailsButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const vol = JSON.parse(this.dataset.id); // Récupérer les détails du vol à partir de l'attribut data-id
+                    alert(
+                        'Détails du vol : \n' +
+                        'Origine : ' + vol.origine + '\n' +
+                        'Destination : ' + vol.destination + '\n' +
+                        'Départ : ' + new Date(vol.date_depart).toLocaleString() + '\n' +
+                        'Arrivée : ' + new Date(vol.date_arrivee).toLocaleString() + '\n' +
+                        'Prix : ' + vol.prix + ' €\n' +
+                        'Compagnie : ' + vol.compagnie + '\n' +
+                        'Durée : ' + vol.duree + ' heures\n' +
+                        'Nombre de passagers : ' + vol.nb_passagers + '\n'
+                    );
                 });
             });
         }
