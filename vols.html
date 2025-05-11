@@ -20,7 +20,7 @@
         return response.json();
       })
       .then(data => {
-        volsData = data; // ✅ rend le tableau accessible globalement
+        volsData = data;
         offersContainer.innerHTML = '';
 
         if (data.length > 0) {
