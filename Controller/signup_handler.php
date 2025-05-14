@@ -1,6 +1,7 @@
 <?php
-// Inclure le fichier de connexion à la base de données
-include 'db.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Récupérer les données du formulaire

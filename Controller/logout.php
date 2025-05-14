@@ -1,4 +1,7 @@
 <?php
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
+
 session_start();
 session_unset();
 session_destroy();

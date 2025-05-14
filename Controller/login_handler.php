@@ -1,5 +1,7 @@
 <?php
-include 'db.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
+
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }

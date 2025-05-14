@@ -91,10 +91,10 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
         <img src="zenith.webp" alt="Logo Zenith Airlines">
       </div>
       <nav class="main-nav">
-        <a href="index.html">Accueil</a>
-        <a href="vols.html">Vols à venir</a>
-        <a href="reserver.html">Réserver un siège</a>
-        <a href="contact.html">Nous contacter</a>
+        <a href="../View/index.html">Accueil</a>
+        <a href="../View/vols.html">Vols à venir</a>
+        <a href="../View/reserver.html">Réserver un siège</a>
+        <a href="../View/contact.html">Nous contacter</a>
         <!-- Le lien vers "Mon Compte" n'est utile qu'une fois connecté -->
       </nav>
     </div>

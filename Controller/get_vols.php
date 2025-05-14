@@ -1,7 +1,8 @@
 <?php
-// Inclure le fichier de connexion à la base de données
-include 'db.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
 
+// Inclure le fichier de connexion à la base de données
 try {
     // Requête pour récupérer tous les vols triés par date de départ avec la durée
     // Calculée comme la différence entre la date d'arrivée et la date de départ

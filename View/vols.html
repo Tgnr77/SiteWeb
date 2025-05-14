@@ -12,7 +12,7 @@
       const offersContainer = document.querySelector('.offers');
       offersContainer.innerHTML = '<p>Chargement des vols...</p>';
 
-      fetch('get_vols.php')
+      fetch('../Controller/get_vols.php')
         .then(response => {
           if (!response.ok) throw new Error('Erreur lors de la récupération des données.');
           return response.json();
@@ -57,7 +57,7 @@
       document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', function () {
           const volId = this.dataset.id;
-          fetch('add_to_cart.php', {
+          fetch('../Controller/add_to_cart.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: `id_vol=${volId}`
@@ -119,10 +119,10 @@
       <img src="zenith.webp" alt="Logo Zenith Airlines">
     </div>
     <nav>
-      <a href="index.html">Accueil</a>
-      <a href="vols.html">Vols à venir</a>
-      <a href="reserver.html">Réserver un siège</a>
-      <a href="contact.html">Nous contacter</a>
+      <a href="../View/index.html">Accueil</a>
+      <a href="../View/vols.html">Vols à venir</a>
+      <a href="../View/reserver.html">Réserver un siège</a>
+      <a href="../View/contact.html">Nous contacter</a>
     </nav>
   </header>
   <main>

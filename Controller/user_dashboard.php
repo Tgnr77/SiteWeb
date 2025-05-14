@@ -1,6 +1,8 @@
 <?php
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
 session_start();
-include 'db.php';
+
 
 // Si l'utilisateur n'est pas connecté, vérifier le cookie
 if (!isset($_SESSION['utilisateur']) && isset($_COOKIE['auth_token'])) {

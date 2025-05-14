@@ -1,5 +1,6 @@
 <?php
-include 'db.php';
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
 session_start();
 header('Content-Type: application/json');
 

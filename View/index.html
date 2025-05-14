@@ -14,11 +14,11 @@
         <img src="zenith.webp" alt="Logo Zenith Airlines">
       </div>
       <nav class="main-nav">
-        <a href="index.html">Accueil</a>
-        <a href="vols.html">Vols à venir</a>
-        <a href="reserver.html">Réserver un siège</a>
-        <a href="contact.html">Nous contacter</a>
-        <a href="account.php">Mon Compte</a>
+        <a href="../View/index.html">Accueil</a>
+        <a href="../View/vols.html">Vols à venir</a>
+        <a href="../View/reserver.html">Réserver un siège</a>
+        <a href="../View/contact.html">Nous contacter</a>
+        <a href="../View/account.php">Mon Compte</a>
       </nav>
     </div>
   </header>
@@ -27,7 +27,7 @@
     <div class="banner-content">
       <h1>Explorez le monde avec Zenith Airlines</h1>
       <p>Profitez de nos meilleures offres et planifiez votre prochaine aventure.</p>
-      <a href="reserver.html" class="button">Réservez maintenant</a>
+      <a href="../View/reserver.html" class="button">Réservez maintenant</a>
     </div>
   </div>
   
@@ -70,7 +70,7 @@
         const formData = new FormData(this);
         const queryString = new URLSearchParams(formData).toString();
   
-        fetch('search_vols.php?' + queryString)
+        fetch('../Controller/search_vols.php?' + queryString)
           .then(response => response.json())
           .then(data => {
             const resultsContainer = document.getElementById('resultsContainer');
