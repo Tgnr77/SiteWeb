@@ -5,12 +5,12 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.html');
+if (!isset($_SESSION['utilisateur']['id'])) {
+    header('Location: ../View/login.html');
     exit;
 }
+$user_id = $_SESSION['utilisateur']['id'];
 
-$user_id = $_SESSION['user_id'];
 
 // Récupération des réservations
 $stmt = $pdo->prepare("
@@ -102,11 +102,11 @@ $reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <img src="zenith.webp" alt="Logo Zenith Airlines">
       </div>
       <nav class="main-nav">
-        <a href="index.html">Accueil</a>
-        <a href="vols.html">Vols à venir</a>
-        <a href="reserver.html">Réserver un siège</a>
-        <a href="contact.html">Nous contacter</a>
-        <a href="logout.php">Se déconnecter</a>
+      <a href="../View/index.html">Accueil</a>
+      <a href="../View/vols.html">Vols à venir</a>
+      <a href="../View/reserver.html">Réserver un siège</a>
+      <a href="../View/contact.html">Nous contacter</a>
+
       </nav>
     </div>
   </header>

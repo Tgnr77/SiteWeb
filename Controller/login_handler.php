@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         // Redirection
-        $redirectUrl = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : 'index.php';
+       $redirectUrl = isset($_POST['redirect_to']) ? $_POST['redirect_to'] : '../View/account.php';
         header("Location: $redirectUrl");
         exit;
     } else {
