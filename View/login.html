@@ -1,28 +1,115 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Se connecter - Zenith Airlines</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Se connecter - Zenith Airlines</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    main {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 50px 20px;
+    }
+
+    .login-container {
+      width: 100%;
+      max-width: 400px;
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .login-container h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    .login-container label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #555;
+    }
+
+    .login-container input {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
+    .login-container button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background-color: #CCBEAA;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.3s;
+    }
+
+    .login-container button:hover {
+      background-color: #e9bd7f;
+      transform: scale(1.03);
+    }
+
+    .signup-link {
+      text-align: center;
+      margin-top: 20px;
+    }
+
+    .signup-link a {
+      color: #007BFF;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .home-button {
+      display: inline-block;
+      margin: 20px;
+      background-color: #007BFF;
+      color: white;
+      padding: 10px 20px;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
-    <!-- Bouton Accueil -->
-    <a href="../View/index.html" class="home-button">Accueil</a>
+  <!-- Bouton Accueil -->
+  <a href="../View/index.html" class="home-button">Accueil</a>
 
-    <header>
-        <h1>Se connecter</h1>
-    </header>
-    <main>
-        <form action="../Controller/login_handler.php" method="POST">
-            <label for="email">Email :</label>
-            <input type="email" id="email" name="email" required>
+  <main>
+    <div class="login-container">
+      <h1>Se connecter</h1>
+      <form action="../Controller/login_handler.php" method="POST">
+        <label for="email">Adresse e-mail :</label>
+        <input type="email" id="email" name="email" required>
 
-            <label for="password">Mot de passe :</label>
-            <input type="password" id="password" name="mot_de_passe" required>
+        <label for="password">Mot de passe :</label>
+        <input type="password" id="password" name="mot_de_passe" required>
 
-            <button type="submit">Se connecter</button>
-        </form>
-    </main>
+        <button type="submit">Se connecter</button>
+      </form>
+
+      <div class="signup-link">
+        <p>Pas encore de compte ? <a href="signup.html">Créer un compte</a></p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <p style="text-align: center; color: #888; margin-top: 40px;">&copy; 2025 Zenith Airlines. Tous droits réservés.</p>
+  </footer>
 </body>
 </html>
