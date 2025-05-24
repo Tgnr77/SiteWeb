@@ -1,8 +1,27 @@
 <?php
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
 if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
+if (!isset($_SESSION['user_id'])) {
+    header('Location: login.html');
+    exit;
+}
+
+$user_id = $_SESSION['user_id'];
+
+// Récupération des réservations
+$stmt = $pdo->prepare("
+    SELECT r.id_reservation, v.origine, v.destination, v.date_depart, v.date_arrivee, v.prix
+    FROM reservations r
+    JOIN vols v ON r.id_vol = v.id_vol
+    WHERE r.id_utilisateur = ?
+    ORDER BY v.date_depart DESC
+");
+$stmt->execute([$user_id]);
+$reservations = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -12,9 +31,8 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
   <title>Mon Compte - Zenith Airlines</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-    /* Styles spécifiques pour la page d'authentification */
     .tab-container {
-      max-width: 400px;
+      max-width: 800px;
       margin: 40px auto;
       background: #fff;
       border: 1px solid #ccc;
@@ -22,65 +40,58 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
       overflow: hidden;
       box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }
-    .tabs {
-      display: flex;
-      justify-content: space-around;
-      background-color: #f2f2f2;
-      cursor: pointer;
-    }
-    .tabs div {
-      flex: 1;
-      padding: 12px;
-      text-align: center;
-      font-weight: bold;
-      transition: background-color 0.3s;
-    }
-    .tabs .active {
+    .tab-header {
       background-color: #CCBEAA;
-      color: #fff;
+      color: white;
+      padding: 15px;
+      font-size: 1.4em;
+      font-weight: bold;
+      text-align: center;
     }
-    .form-container {
+    .reservation-list {
       padding: 20px;
     }
-    .form-container form {
-      display: none;
+    .reservation-card {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-    .form-container form.active {
-      display: block;
-    }
-    .form-container h2 {
-      margin-bottom: 20px;
+    .reservation-card h3 {
+      margin-top: 0;
       color: #333;
-      text-align: center;
     }
-    .form-container label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
+    .reservation-card p {
+      margin: 5px 0;
       color: #555;
     }
-    .form-container input {
-      width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-      box-sizing: border-box;
+    .reservation-card form {
+      display: inline-block;
+      margin-right: 10px;
     }
-    .form-container button {
-      width: 100%;
-      padding: 10px;
+    .reservation-card button,
+    .reservation-card a.button {
+      padding: 8px 16px;
       background-color: #CCBEAA;
-      color: #fff;
+      color: white;
       border: none;
-      border-radius: 30px;
+      border-radius: 20px;
       font-weight: bold;
+      text-decoration: none;
       cursor: pointer;
-      transition: background-color 0.3s, transform 0.3s;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
-    .form-container button:hover {
+    .reservation-card button:hover,
+    .reservation-card a.button:hover {
       background-color: #e9bd7f;
-      transform: scale(1.02);
+      transform: scale(1.03);
+    }
+    .no-reservation {
+      text-align: center;
+      padding: 20px;
+      color: #999;
     }
   </style>
 </head>
@@ -91,76 +102,45 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
         <img src="zenith.webp" alt="Logo Zenith Airlines">
       </div>
       <nav class="main-nav">
-        <a href="../View/index.html">Accueil</a>
-        <a href="../View/vols.html">Vols à venir</a>
-        <a href="../View/reserver.html">Réserver un siège</a>
-        <a href="../View/contact.html">Nous contacter</a>
-        <!-- Le lien vers "Mon Compte" n'est utile qu'une fois connecté -->
+        <a href="index.html">Accueil</a>
+        <a href="vols.html">Vols à venir</a>
+        <a href="reserver.html">Réserver un siège</a>
+        <a href="contact.html">Nous contacter</a>
+        <a href="logout.php">Se déconnecter</a>
       </nav>
     </div>
   </header>
-  
+
   <main>
     <div class="tab-container">
-      <div class="tabs">
-        <div id="login-tab" class="active">Se connecter</div>
-        <div id="signup-tab">Créer un compte</div>
-      </div>
-      <div class="form-container">
-        <!-- Formulaire de connexion -->
-        <form id="login-form" class="active" action="login.php" method="POST">
-          <h2>Connexion</h2>
-          <label for="login-email">Adresse e-mail :</label>
-          <input type="email" name="email" id="login-email" placeholder="Votre adresse e-mail" required>
-          
-          <label for="login-password">Mot de passe :</label>
-          <input type="password" name="password" id="login-password" placeholder="Votre mot de passe" required>
-          
-          <button type="submit">Se connecter</button>
-        </form>
-        
-        <!-- Formulaire de création de compte -->
-        <form id="signup-form" action="signup_handler.php" method="POST">
-          <h2>Créer un compte</h2>
-          <label for="signup-nom">Nom :</label>
-          <input type="text" name="nom" id="signup-nom" placeholder="Votre nom" required>
-          
-          <label for="signup-prenom">Prénom :</label>
-          <input type="text" name="prenom" id="signup-prenom" placeholder="Votre prénom" required>
-          
-          <label for="signup-email">Adresse e-mail :</label>
-          <input type="email" name="email" id="signup-email" placeholder="Votre adresse e-mail" required>
-          
-          <label for="signup-mot_de_passe">Mot de passe :</label>
-          <input type="password" name="mot_de_passe" id="signup-mot_de_passe" placeholder="Choisissez un mot de passe" required>
-          
-          <label for="signup-mot_de_passe-confirm">Confirmez le mot de passe :</label>
-          <input type="password" name="mot_de_passe_confirm" id="signup-mot_de_passe-confirm" placeholder="Confirmez votre mot de passe" required>
-          
-          <button type="submit">Créer un compte</button>
-        </form>
+      <div class="tab-header">Mes Réservations</div>
+      <div class="reservation-list">
+        <?php if (count($reservations) > 0): ?>
+          <?php foreach ($reservations as $res): ?>
+            <div class="reservation-card">
+              <h3><?= htmlspecialchars($res['origine']) ?> ➜ <?= htmlspecialchars($res['destination']) ?></h3>
+              <p><strong>Départ :</strong> <?= date('d/m/Y H:i', strtotime($res['date_depart'])) ?></p>
+              <p><strong>Arrivée :</strong> <?= date('d/m/Y H:i', strtotime($res['date_arrivee'])) ?></p>
+              <p><strong>Prix :</strong> <?= $res['prix'] ?> €</p>
+              <p><strong>Réservation #<?= $res['id_reservation'] ?></strong></p>
+
+              <form action="cancel_reservation.php" method="POST" onsubmit="return confirm('Confirmer l\'annulation de cette réservation ?');">
+                <input type="hidden" name="id_reservation" value="<?= $res['id_reservation'] ?>">
+                <button type="submit">Annuler</button>
+              </form>
+
+              <a href="facture_pdf.php?id=<?= $res['id_reservation'] ?>" target="_blank" class="button">Télécharger la facture</a>
+            </div>
+          <?php endforeach; ?>
+        <?php else: ?>
+          <div class="no-reservation">Vous n'avez aucune réservation pour le moment.</div>
+        <?php endif; ?>
       </div>
     </div>
   </main>
-  
+
   <footer>
     <p>&copy; 2025 Zenith Airlines. Tous droits réservés.</p>
   </footer>
-  
-  <script>
-    // Gestion de l'affichage des onglets
-    document.getElementById('login-tab').addEventListener('click', function() {
-      document.getElementById('login-form').classList.add('active');
-      document.getElementById('signup-form').classList.remove('active');
-      this.classList.add('active');
-      document.getElementById('signup-tab').classList.remove('active');
-    });
-    document.getElementById('signup-tab').addEventListener('click', function() {
-      document.getElementById('signup-form').classList.add('active');
-      document.getElementById('login-form').classList.remove('active');
-      this.classList.add('active');
-      document.getElementById('login-tab').classList.remove('active');
-    });
-  </script>
 </body>
 </html>
