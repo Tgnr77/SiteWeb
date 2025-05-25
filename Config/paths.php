@@ -1,5 +1,5 @@
 <?php
-define('ROOT', dirname(__DIR__));
+define('ROOT', realpath(__DIR__ . '/../'));
 define('MODEL_PATH', ROOT . '/Model/');
 define('VIEW_PATH', ROOT . '/View/');
 define('CONTROLLER_PATH', ROOT . '/Controller/');

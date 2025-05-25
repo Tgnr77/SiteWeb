@@ -84,6 +84,7 @@
                     <h3>${vol.origine} - ${vol.destination}</h3>
                     <p>Départ : ${new Date(vol.date_depart).toLocaleString()}</p>
                     <p>Prix : ${vol.prix} €</p>
+                    <button onclick="window.location.href='../View/reserver_vol.php?id=${vol.id_vol}'" class="add-to-cart">Réserver</button>
                   </div>
                 `;
                 resultsContainer.appendChild(volDiv);
