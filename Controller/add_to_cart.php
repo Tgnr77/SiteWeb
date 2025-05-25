@@ -17,8 +17,9 @@ try {
         exit;
     }
 
-    if (isset($_SESSION['id_utilisateur'])) {
-        $id_utilisateur = $_SESSION['id_utilisateur'];
+    // ✅ Utilisateur connecté
+    if (isset($_SESSION['utilisateur']['id'])) {
+        $id_utilisateur = $_SESSION['utilisateur']['id'];
 
         // Vérifier si le vol est déjà dans le panier
         $stmt = $pdo->prepare("SELECT * FROM panier WHERE id_utilisateur = :id_utilisateur AND id_vol = :id_vol");
@@ -33,7 +34,7 @@ try {
             $stmt->execute([':id_utilisateur' => $id_utilisateur, ':id_vol' => $id_vol]);
         }
     } else {
-        // Stocker dans $_SESSION['panier'] pour les utilisateurs non connectés
+        // ✅ Utilisateur NON connecté : stocker en session
         if (!isset($_SESSION['panier'])) {
             $_SESSION['panier'] = [];
         }
@@ -52,4 +53,3 @@ try {
 } catch (Exception $e) {
     echo json_encode(['error' => 'Erreur serveur : ' . $e->getMessage()]);
 }
-?>

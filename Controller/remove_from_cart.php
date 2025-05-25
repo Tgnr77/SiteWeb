@@ -1,30 +1,24 @@
 <?php
 require_once __DIR__ . '/../config/paths.php';
 require_once MODEL_PATH . 'db.php';
-
 session_start();
 
-if (!isset($_SESSION['id_utilisateur'])) {
-    http_response_code(401);
-    echo json_encode(['error' => 'Utilisateur non connecté.']);
-    exit;
-}
-
-try {
-    $id_utilisateur = $_SESSION['id_utilisateur'];
-    $id_panier = isset($_POST['id_panier']) ? (int)$_POST['id_panier'] : 0;
-
-    if ($id_panier === 0) {
-        http_response_code(400);
-        echo json_encode(['error' => 'ID du panier invalide.']);
-        exit;
-    }
+// Si connecté → suppression en base
+if (isset($_SESSION['utilisateur']['id']) && isset($_POST['id_panier'])) {
+    $id_panier = (int) $_POST['id_panier'];
+    $user_id = $_SESSION['utilisateur']['id'];
 
     $stmt = $pdo->prepare("DELETE FROM panier WHERE id_panier = :id_panier AND id_utilisateur = :id_utilisateur");
-    $stmt->execute([':id_panier' => $id_panier, ':id_utilisateur' => $id_utilisateur]);
-
-    echo json_encode(['success' => 'Article supprimé du panier.']);
-} catch (PDOException $e) {
-    http_response_code(500);
-    echo json_encode(['error' => $e->getMessage()]);
+    $stmt->execute([
+        ':id_panier' => $id_panier,
+        ':id_utilisateur' => $user_id
+    ]);
 }
+
+// Si non connecté → suppression dans la session
+elseif (isset($_POST['id_vol']) && isset($_SESSION['panier'][$_POST['id_vol']])) {
+    unset($_SESSION['panier'][$_POST['id_vol']]);
+}
+
+header('Location: ../View/panier.php');
+exit;

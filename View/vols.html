@@ -52,6 +52,25 @@
           console.error('Erreur :', error);
           offersContainer.innerHTML = '<p>Erreur lors du chargement des vols. Veuillez réessayer plus tard.</p>';
         });
+
+      // Chargement dynamique du compteur panier
+      if (document.getElementById('panier-count')) {
+        fetch('../Controller/get_cart_count.php')
+          .then(response => response.json())
+          .then(data => {
+            if (data.count > 0) {
+              document.getElementById('panier-count').textContent = `(${data.count})`;
+            } else {
+              document.getElementById('panier-count').textContent = '';
+            }
+          })
+          .catch(() => {
+            const panierCount = sessionStorage.getItem('panier_count');
+            if (panierCount > 0) {
+              document.getElementById('panier-count').textContent = `(${panierCount})`;
+            }
+          });
+      }
     });
 
     function attachAddToCartEvents() {
@@ -65,11 +84,19 @@
           })
             .then(response => response.json())
             .then(data => {
-              alert(data.success ? 'Vol ajouté au panier avec succès !' : (data.error || 'Erreur inconnue.'));
+              if (data.success) {
+                showToast('✔️ Vol ajouté au panier');
+                let count = parseInt(sessionStorage.getItem('panier_count') || '0');
+                sessionStorage.setItem('panier_count', count + 1);
+                const span = document.getElementById('panier-count');
+                if (span) span.textContent = `(${count + 1})`;
+              } else {
+                showToast('❌ ' + (data.error || 'Erreur inconnue'), true);
+              }
             })
             .catch(error => {
               console.error('Erreur réseau :', error);
-              alert('Impossible d\'ajouter au panier.');
+              showToast('❌ Impossible d\'ajouter au panier.', true);
             });
         });
       });
@@ -112,6 +139,17 @@
         }
       };
     }
+
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      if (!toast) return;
+      toast.textContent = message;
+      toast.style.backgroundColor = isError ? '#e74c3c' : '#4CAF50';
+      toast.style.opacity = '1';
+      setTimeout(() => {
+        toast.style.opacity = '0';
+      }, 3000);
+    }
   </script>
 </head>
 <body>
@@ -123,6 +161,8 @@
       <a href="../View/index.html">Accueil</a>
       <a href="../View/vols.html">Vols à venir</a>
       <a href="../View/reserver.html">Réserver un siège</a>
+      <a href="../View/account.php">Mon compte</a>
+      <a href="../View/panier.php">🛒 Voir le panier<span id="panier-count" style="margin-left: 5px; color: red;"></span></a>
       <a href="../View/contact.html">Nous contacter</a>
     </nav>
   </header>
@@ -151,6 +191,25 @@
       <p id="modal-compagnie"></p>
       <p id="modal-passagers"></p>
     </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" style="
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    font-weight: bold;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+  ">
+    ✔️ Vol ajouté au panier
   </div>
 </body>
 </html>
