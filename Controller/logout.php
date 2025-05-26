@@ -1,16 +1,17 @@
 <?php
-require_once __DIR__ . '/../config/paths.php';
-require_once MODEL_PATH . 'db.php';
-
 session_start();
+
+// Supprime toutes les variables de session
 session_unset();
+
+// Détruit la session
 session_destroy();
 
-// Supprimer le cookie en le définissant avec une date d'expiration passée
+// Supprime le cookie d'auth_token s'il existe
 if (isset($_COOKIE['auth_token'])) {
-    setcookie('auth_token', '', time() - 3600, "/");
+    setcookie('auth_token', '', time() - 3600, '/', '', true, true);
 }
 
-header('Location: index.html'); // Redirige vers la page d'accueil
+// Redirige vers login.html avec paramètre de confirmation
+header('Location: ../View/login.html?logout=1');
 exit;
-?>
