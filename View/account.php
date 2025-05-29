@@ -86,7 +86,7 @@ $totalDepense = array_reduce($reservations, fn($c, $i) => $c + $i['prix'], 0);
       <a href="vols.html">Vols à venir</a>
       <a href="reserver.html">Réserver un siège</a>
       <a href="panier.php">🛒 Voir le panier<span id="panier-count" style="margin-left: 5px; color: red;"></span></a>
-      <a href="logout.php">Se déconnecter</a>
+      <a href="../Controller/logout.php">Se déconnecter</a>                                                                      
     </nav>
   </header>
 
