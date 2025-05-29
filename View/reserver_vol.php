@@ -98,7 +98,7 @@ foreach ($ids as $id_vol) {
   
   <header><h1>Réservation des vols</h1></header>
   <main class="reservation-container">
-    <form action="../Controller/paiement.php" method="POST" id="reservation-form">
+    <form action="formulaire_paiement.php" method="POST" id="reservation-form">
       
       <?php foreach ($vols as $vol): ?>
         <input type="hidden" name="vols[<?= $vol['id_vol'] ?>][id_vol]" value="<?= $vol['id_vol'] ?>">

@@ -31,7 +31,7 @@ $_SESSION['donnees_vols'] = $_POST['vols'];
 <body>
     <div class="container">
         <h2>Informations de paiement</h2>
-        <form action="paiement.php" method="POST">
+        <form action="../Controller/paiement.php" method="POST">
             <label for="nom">Nom du titulaire :</label>
             <input type="text" id="nom" name="nom" required>
 

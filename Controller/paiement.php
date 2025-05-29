@@ -8,12 +8,25 @@ if (!isset($_SESSION['utilisateur']['id'])) {
     exit;
 }
 
-if (!isset($_POST['vols']) || !is_array($_POST['vols'])) {
-    die("Aucune donnée reçue.");
+$vols = $_SESSION['donnees_vols'] ?? [];
+unset($_SESSION['donnees_vols']);
+
+if (empty($vols)) {
+    die("Aucune donnée reçue (vols manquants).");
+}
+
+$numero = $_POST['numero'] ?? '';
+$cvv = $_POST['cvv'] ?? '';
+$expiration = $_POST['expiration'] ?? '';
+$nom = trim($_POST['nom'] ?? '');
+
+if (empty($nom) || strlen($numero) !== 16 || strlen($cvv) !== 3) {
+    die("Paiement refusé. Vérifiez les informations saisies.");
 }
 
 $user_id = $_SESSION['utilisateur']['id'];
-$vols = $_POST['vols'];
+$vols = $_SESSION['donnees_vols'] ?? [];
+unset($_SESSION['donnees_vols']);
 $messages = [];
 
 foreach ($vols as $vol_data) {
@@ -55,16 +68,27 @@ foreach ($vols as $vol_data) {
     $paiement_ok = true;
 
     if ($paiement_ok) {
-        $insert = $pdo->prepare("
-            INSERT INTO reservations (id_utilisateur, id_vol, formule, poids_cabine, poids_soute, siege, prix_total)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ");
-        $insert->execute([$user_id, $id_vol, $formule, $poids_cabine, $poids_soute, $siege, $prix_total]);
+    // Enregistrement de la réservation
+    $insert = $pdo->prepare("
+        INSERT INTO reservations (id_utilisateur, id_vol, formule, poids_cabine, poids_soute, siege, prix_total)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ");
+    $insert->execute([$user_id, $id_vol, $formule, $poids_cabine, $poids_soute, $siege, $prix_total]);
 
-        $messages[] = "Réservation confirmée pour le vol $id_vol (siège $siege).";
-    } else {
-        $messages[] = "Échec du paiement pour le vol $id_vol.";
+    // Suppression du vol du panier après réservation
+    $delete = $pdo->prepare("DELETE FROM panier WHERE id_utilisateur = ? AND id_vol = ?");
+    $delete->execute([$user_id, $id_vol]);
+
+    // Log si rien n’a été supprimé
+    if ($delete->rowCount() === 0) {
+        error_log("⚠️ Aucun vol supprimé du panier : user $user_id, vol $id_vol");
     }
+
+    // Message de confirmation
+    $messages[] = "Réservation confirmée pour le vol $id_vol (siège $siege).";
+} else {
+    $messages[] = "Échec du paiement pour le vol $id_vol.";
+}
 }
 
 // Stocker les messages pour confirmation.php

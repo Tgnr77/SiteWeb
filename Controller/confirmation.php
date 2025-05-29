@@ -19,7 +19,7 @@ unset($_SESSION['confirmation_messages']);
         <?php endforeach; ?>
     </ul>
     <div style="margin-top: 20px;">
-        <a href="account.php" class="button">Voir mes réservations</a>
+        <a href="../View/account.php" class="button">Voir mes réservations</a>
     </div>
 </body>
 </html>
