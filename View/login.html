@@ -92,17 +92,22 @@
   <main>
     <div class="login-container">
       <h1>Se connecter</h1>
+      <!-- Formulaire de connexion -->
       <form action="../Controller/login_handler.php" method="POST">
         <label for="email">Adresse e-mail :</label>
+        <!-- Champ pour l'adresse e-mail -->
         <input type="email" id="email" name="email" required>
 
         <label for="password">Mot de passe :</label>
+        <!-- Champ pour le mot de passe -->
         <input type="password" id="password" name="mot_de_passe" required>
 
+        <!-- Bouton de soumission du formulaire -->
         <button type="submit">Se connecter</button>
       </form>
 
       <div class="signup-link">
+        <!-- Lien vers la page d'inscription -->
         <p>Pas encore de compte ? <a href="signup.html">Créer un compte</a></p>
       </div>
     </div>

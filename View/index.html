@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Accueil - Zenith Airlines</title>
   <link rel="stylesheet" href="styles.css">
+  <!-- Flatpickr CSS pour le sélecteur de date -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 </head>
 <body>
@@ -41,6 +42,7 @@
         <input type="text" id="arrival" name="destination" placeholder="Ville d'arrivée" required>
         
         <label for="date">Date :</label>
+        <!-- Champ de saisie pour la date, utilisé par Flatpickr -->
         <input type="text" id="date" name="date_depart" placeholder="JJ/MM/AAAA">
         
         <button type="submit">Chercher un vol</button>
@@ -59,16 +61,20 @@
     <p>&copy; 2025 Zenith Airlines. Tous droits réservés.</p>
   </footer>
   
+  <!-- Flatpickr JS pour le sélecteur de date -->
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Initialisation du sélecteur de date Flatpickr
       flatpickr("#date", { dateFormat: "Y-m-d", locale: "fr" });
   
+      // Gestion de la soumission du formulaire de recherche
       document.getElementById('searchForm').addEventListener('submit', function (event) {
-        event.preventDefault();
+        event.preventDefault(); // Empêche le rechargement de la page
         const formData = new FormData(this);
         const queryString = new URLSearchParams(formData).toString();
   
+        // Requête AJAX pour récupérer les vols selon les critères
         fetch('../Controller/search_vols.php?' + queryString)
           .then(response => response.json())
           .then(data => {
@@ -89,10 +95,11 @@
                 resultsContainer.appendChild(volDiv);
               });
             } else {
+              // Message si aucun vol trouvé
               resultsContainer.innerHTML = '<p class="error-message">Aucun vol trouvé pour les critères spécifiés.</p>';
             }
           })
-          .catch(error => console.error('Erreur:', error));
+          .catch(error => console.error('Erreur:', error)); // Gestion des erreurs
       });
     });
   </script>

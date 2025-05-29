@@ -39,6 +39,6 @@ foreach ($panier as $item) {
 // Suppression du panier
 $stmt = $pdo->prepare("DELETE FROM panier WHERE id_utilisateur = ?");
 $stmt->execute([$user_id]);
-
+// Redirection vers la page de compte
 header('Location: account.php');
 exit;

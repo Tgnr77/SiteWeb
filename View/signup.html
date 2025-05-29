@@ -4,28 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Créer un compte - Zenith Airlines</title>
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css"> <!-- Lien vers la feuille de style CSS -->
 </head>
 <body>
     <header>
         <h1>Créer un compte</h1>
     </header>
     <main>
+        <!-- Formulaire d'inscription -->
         <form action="../Controller/signup_handler.php" method="POST">
 
             <label for="nom">Nom :</label>
-            <input type="text" id="nom" name="nom" required>
+            <input type="text" id="nom" name="nom" required> <!-- Champ pour le nom -->
 
             <label for="prenom">Prénom :</label>
-            <input type="text" id="prenom" name="prenom" required>
+            <input type="text" id="prenom" name="prenom" required> <!-- Champ pour le prénom -->
 
             <label for="email">Email :</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" required> <!-- Champ pour l'email -->
 
             <label for="password">Mot de passe :</label>
-            <input type="password" id="password" name="mot_de_passe" required>
+            <input type="password" id="password" name="mot_de_passe" required> <!-- Champ pour le mot de passe -->
 
-            <button type="submit">Créer un compte</button>
+            <button type="submit">Créer un compte</button> <!-- Bouton de soumission -->
         </form>
     </main>
 </body>

@@ -1,15 +1,16 @@
 <?php
-require_once __DIR__ . '/../Config/paths.php';
-require_once MODEL_PATH . 'db.php';
-session_start();
+require_once __DIR__ . '/../Config/paths.php'; // Inclut le fichier de configuration des chemins
+require_once MODEL_PATH . 'db.php'; // Inclut la connexion à la base de données
+session_start(); // Démarre la session
 
-if (!isset($_SESSION['utilisateur']['id'])) {
-    header('Location: login.html');
+if (!isset($_SESSION['utilisateur']['id'])) { // Vérifie si l'utilisateur est connecté
+    header('Location: login.html'); // Redirige vers la page de connexion si non connecté
     exit;
 }
 
-$user_id = $_SESSION['utilisateur']['id'];
+$user_id = $_SESSION['utilisateur']['id']; // Récupère l'id de l'utilisateur connecté
 
+// Prépare et exécute la requête pour récupérer les vols dans le panier de l'utilisateur
 $stmt = $pdo->prepare("
     SELECT c.id_panier, c.id_vol, v.origine, v.destination, v.date_depart, v.date_arrivee, v.prix
     FROM panier c
@@ -17,7 +18,7 @@ $stmt = $pdo->prepare("
     WHERE c.id_utilisateur = ?
 ");
 $stmt->execute([$user_id]);
-$vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC); // Récupère les résultats sous forme de tableau associatif
 ?>
 
 <!DOCTYPE html>
@@ -27,6 +28,7 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <title>Mon Panier</title>
     <link rel="stylesheet" href="styles.css">
     <style>
+        /* Styles CSS pour l'affichage du panier */
         .offer {
             position: relative;
             border: 1px solid #ccc;
@@ -83,6 +85,7 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($vols_panier as $vol): ?>
                 <div class="offer" data-panier-id="<?= $vol['id_panier'] ?>">
                     <div class="delete-form">
+                        <!-- Bouton pour supprimer un vol du panier -->
                         <button type="button" class="delete-button" title="Supprimer ce vol"
                                 onclick="supprimerVol(<?= $vol['id_panier'] ?>)">🗑️</button>
                     </div>
@@ -93,6 +96,7 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <p><strong>Arrivée :</strong> <?= htmlspecialchars($vol['date_arrivee']) ?></p>
                         <p><strong>Prix :</strong> <?= $vol['prix'] ?> €</p>
                         <label>
+                            <!-- Case à cocher pour sélectionner le vol à réserver -->
                             <input type="checkbox" class="vol-checkbox" name="ids[]" value="<?= $vol['id_vol'] ?>">
                             Réserver ce vol
                         </label>
@@ -109,10 +113,12 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
 </main>
 
 <script>
+    // Gestion du bouton "Tout sélectionner"
     document.getElementById('select-all')?.addEventListener('change', function () {
         document.querySelectorAll('.vol-checkbox').forEach(cb => cb.checked = this.checked);
     });
 
+    // Fonction pour supprimer un vol du panier via AJAX
     function supprimerVol(id_panier) {
         if (confirm("Voulez-vous vraiment supprimer ce vol du panier ?")) {
             fetch('../Controller/remove_from_cart.php', {
@@ -128,6 +134,7 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     const element = document.querySelector(`[data-panier-id="${id_panier}"]`);
                     if (element) element.remove();
 
+                    // Si le panier est vide après suppression, affiche le message correspondant
                     if (document.querySelectorAll('.offer').length === 0) {
                         document.querySelector('.offers').innerHTML = `
                             <p class="error-message">Votre panier est vide.</p>

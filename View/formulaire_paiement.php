@@ -1,10 +1,10 @@
 <?php
-session_start();
-if (!isset($_POST['vols']) || !is_array($_POST['vols'])) {
-    die("Aucune sélection reçue.");
+session_start(); // Démarre la session pour stocker les données utilisateur
+if (!isset($_POST['vols']) || !is_array($_POST['vols'])) { // Vérifie si les vols ont été envoyés et sont sous forme de tableau
+    die("Aucune sélection reçue."); // Arrête le script si aucune sélection n'a été reçue
 }
 
-$_SESSION['donnees_vols'] = $_POST['vols'];
+$_SESSION['donnees_vols'] = $_POST['vols']; // Stocke les vols sélectionnés dans la session
 ?>
 
 <!DOCTYPE html>
@@ -31,20 +31,20 @@ $_SESSION['donnees_vols'] = $_POST['vols'];
 <body>
     <div class="container">
         <h2>Informations de paiement</h2>
-        <form action="../Controller/paiement.php" method="POST">
+        <form action="../Controller/paiement.php" method="POST"> <!-- Formulaire d'envoi des informations de paiement -->
             <label for="nom">Nom du titulaire :</label>
-            <input type="text" id="nom" name="nom" required>
+            <input type="text" id="nom" name="nom" required> <!-- Champ pour le nom du titulaire -->
 
             <label for="numero">Numéro de carte :</label>
-            <input type="text" id="numero" name="numero" placeholder="1234 5678 9012 3456" required pattern="\d{16}">
+            <input type="text" id="numero" name="numero" placeholder="1234 5678 9012 3456" required pattern="\d{16}"> <!-- Champ pour le numéro de carte -->
 
             <label for="expiration">Date d’expiration :</label>
-            <input type="month" id="expiration" name="expiration" required>
+            <input type="month" id="expiration" name="expiration" required> <!-- Champ pour la date d'expiration -->
 
             <label for="cvv">Cryptogramme visuel :</label>
-            <input type="text" id="cvv" name="cvv" pattern="\d{3}" required>
+            <input type="text" id="cvv" name="cvv" pattern="\d{3}" required> <!-- Champ pour le CVV -->
 
-            <button type="submit" class="button">Valider le paiement</button>
+            <button type="submit" class="button">Valider le paiement</button> <!-- Bouton de validation -->
         </form>
     </div>
 </body>

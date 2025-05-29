@@ -12,6 +12,7 @@
       const offersContainer = document.querySelector('.offers');
       offersContainer.innerHTML = '<p>Chargement des vols...</p>';
 
+      // Récupère la liste des vols depuis le serveur
       fetch('../Controller/get_vols.php')
         .then(response => {
           if (!response.ok) throw new Error('Erreur lors de la récupération des données.');
@@ -25,6 +26,7 @@
             data.forEach(vol => {
               const volDiv = document.createElement('div');
               volDiv.classList.add('offer');
+              // Affiche les informations du vol
               volDiv.innerHTML = `
                 <div class="offer-details">
                   <h3>${vol.origine} - ${vol.destination}</h3>
@@ -42,8 +44,8 @@
               offersContainer.appendChild(volDiv);
             });
 
-            attachAddToCartEvents();
-            attachDetailsEvents();
+            attachAddToCartEvents(); // Ajoute les événements pour le panier
+            attachDetailsEvents();   // Ajoute les événements pour les détails
           } else {
             offersContainer.innerHTML = '<p>Aucun vol disponible pour le moment.</p>';
           }
@@ -65,6 +67,7 @@
             }
           })
           .catch(() => {
+            // Si erreur, utilise la valeur stockée en session
             const panierCount = sessionStorage.getItem('panier_count');
             if (panierCount > 0) {
               document.getElementById('panier-count').textContent = `(${panierCount})`;
@@ -73,6 +76,7 @@
       }
     });
 
+    // Ajoute un vol au panier
     function attachAddToCartEvents() {
       document.querySelectorAll('.add-to-cart').forEach(button => {
         button.addEventListener('click', function () {
@@ -102,6 +106,7 @@
       });
     }
 
+    // Affiche la modale avec les détails du vol
     function attachDetailsEvents() {
       const detailButtons = document.querySelectorAll('.details-button');
       const modal = document.getElementById('modal');
@@ -127,11 +132,13 @@
         });
       });
 
+      // Ferme la modale au clic sur la croix
       closeBtn.onclick = () => {
         modal.classList.add('hidden');
         modal.classList.remove('show');
       };
 
+      // Ferme la modale au clic en dehors du contenu
       window.onclick = function (event) {
         if (event.target === modal) {
           modal.classList.add('hidden');
@@ -140,6 +147,7 @@
       };
     }
 
+    // Affiche une notification toast
     function showToast(message, isError = false) {
       const toast = document.getElementById('toast');
       if (!toast) return;

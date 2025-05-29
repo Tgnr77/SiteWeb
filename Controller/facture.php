@@ -33,9 +33,6 @@ $pdf->SetFont('Arial', 'B', 16);
 // Logo
 $pdf->Image('../View/zenith.jpg', 10, 10, 40); // adapte le chemin si nécessaire
 
-// QR Code image statique (ex: générée depuis un outil en ligne)
-//$pdf->Image('../assets/qrcode.png', 160, 10, 30); // optionnel
-
 $pdf->Ln(30);
 $pdf->Cell(0, 10, utf8_decode("Facture - Zenith Airlines"), 0, 1, 'C');
 $pdf->SetFont('Arial', '', 12);
