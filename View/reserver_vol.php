@@ -1,26 +1,35 @@
 <?php
 require_once __DIR__ . '/../Config/paths.php';
 require_once MODEL_PATH . 'db.php';
+session_start();
 
-if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
-    die("Vol non spécifié.");
+if (!isset($_SESSION['utilisateur']['id'])) {
+    header('Location: login.html');
+    exit;
 }
 
-$id_vol = intval($_GET['id']);
-$stmt = $pdo->prepare("SELECT * FROM vols WHERE id_vol = ?");
-$stmt->execute([$id_vol]);
-$vol = $stmt->fetch(PDO::FETCH_ASSOC);
+$ids = $_GET['ids'] ?? [];
 
-if (!$vol) {
-    die("Vol introuvable.");
+if (empty($ids) || !is_array($ids)) {
+    die("Aucun vol sélectionné.");
 }
+
+$ids = array_filter($ids, fn($id) => is_numeric($id));
+if (empty($ids)) {
+    die("Vols invalides.");
+}
+
+$placeholders = implode(',', array_fill(0, count($ids), '?'));
+$stmt = $pdo->prepare("SELECT * FROM vols WHERE id_vol IN ($placeholders)");
+$stmt->execute($ids);
+$vols = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Réserver - <?= htmlspecialchars($vol['origine']) ?> → <?= htmlspecialchars($vol['destination']) ?></title>
+  <title>Réservation des vols sélectionnés</title>
   <link rel="stylesheet" href="styles.css">
   <style>
     body {
@@ -77,138 +86,136 @@ if (!$vol) {
   </style>
 </head>
 <body>
-  <header><h1>Réservation du vol</h1></header>
-
+  <header><h1>Réservation des vols</h1></header>
   <main class="reservation-container">
     <form action="../Controller/paiement.php" method="POST" id="reservation-form">
-      <input type="hidden" name="id_vol" value="<?= $id_vol ?>">
-      <input type="hidden" id="prix_base_hidden" name="prix_base" value="<?= $vol['prix'] ?>">
+      <?php foreach ($vols as $vol): ?>
+        <input type="hidden" name="vols[]" value="<?= $vol['id_vol'] ?>">
+        <input type="hidden" name="prix_base[<?= $vol['id_vol'] ?>]" value="<?= $vol['prix'] ?>">
 
-      <div>
-        <h2>Informations du vol</h2>
-        <p><strong>De :</strong> <?= htmlspecialchars($vol['origine']) ?></p>
-        <p><strong>Vers :</strong> <?= htmlspecialchars($vol['destination']) ?></p>
-        <p><strong>Date de départ :</strong> <?= htmlspecialchars($vol['date_depart']) ?></p>
-        <p><strong>Arrivée :</strong> <?= htmlspecialchars($vol['date_arrivee']) ?></p>
-        <p><strong>Durée :</strong> <?= isset($vol['duree']) && $vol['duree'] ? htmlspecialchars($vol['duree']) : 'Non renseignée' ?></p>
-        <p><strong>Prix de base :</strong> <?= $vol['prix'] ?> €</p>
-      </div>
+        <div>
+          <h2><?= htmlspecialchars($vol['origine']) ?> → <?= htmlspecialchars($vol['destination']) ?></h2>
+          <p><strong>Départ :</strong> <?= htmlspecialchars($vol['date_depart']) ?></p>
+          <p><strong>Arrivée :</strong> <?= htmlspecialchars($vol['date_arrivee']) ?></p>
+          <p><strong>Durée :</strong> <?= isset($vol['duree']) && $vol['duree'] ? htmlspecialchars($vol['duree']) : 'Non renseignée' ?></p>
+          <p><strong>Prix de base :</strong> <?= $vol['prix'] ?> €</p>
 
-      <div>
-        <h3>Formule</h3>
-        <label><input type="radio" name="formule" value="eco" checked> Économique : Bagage cabine / Siège non sélectionnable / Non remboursable</label>
-        <label><input type="radio" name="formule" value="premium"> Premium (+70 €) : Bagage cabine + soute / Siège sélectionnable / Remboursable</label>
-      </div>
+          <h3>Formule</h3>
+          <label><input type="radio" name="formule[<?= $vol['id_vol'] ?>]" value="eco" checked> Économique</label>
+          <label><input type="radio" name="formule[<?= $vol['id_vol'] ?>]" value="premium"> Premium (+70 €)</label>
 
-      <div>
-        <h3>Bagage cabine</h3>
-        <label for="poids_cabine">Poids (kg) :</label>
-        <select name="poids_cabine" id="poids_cabine">
-          <?php for ($i = 0; $i <= 20; $i += 5): ?>
-            <option value="<?= $i ?>"><?= $i ?> kg</option>
-          <?php endfor; ?>
-        </select>
-      </div>
+          <h3>Bagage cabine</h3>
+          <label for="poids_cabine_<?= $vol['id_vol'] ?>">Poids (kg) :</label>
+          <select name="poids_cabine[<?= $vol['id_vol'] ?>]" id="poids_cabine_<?= $vol['id_vol'] ?>">
+            <?php for ($i = 0; $i <= 20; $i += 5): ?>
+              <option value="<?= $i ?>"><?= $i ?> kg</option>
+            <?php endfor; ?>
+          </select>
 
-      <div id="soute-container" style="display: none;">
-        <h3>Bagage en soute</h3>
-        <label for="poids_soute">Poids (kg) :</label>
-        <select name="poids_soute" id="poids_soute">
-          <?php for ($i = 0; $i <= 35; $i += 5): ?>
-            <option value="<?= $i ?>"><?= $i ?> kg</option>
-          <?php endfor; ?>
-        </select>
-      </div>
+          <div id="soute-container-<?= $vol['id_vol'] ?>" style="display: none;">
+            <h3>Bagage en soute</h3>
+            <label for="poids_soute_<?= $vol['id_vol'] ?>">Poids (kg) :</label>
+            <select name="poids_soute[<?= $vol['id_vol'] ?>]" id="poids_soute_<?= $vol['id_vol'] ?>">
+              <?php for ($i = 0; $i <= 35; $i += 5): ?>
+                <option value="<?= $i ?>"><?= $i ?> kg</option>
+              <?php endfor; ?>
+            </select>
+          </div>
 
-      <div class="aircraft" id="siege-container" style="display: none;">
-        <h3>Choisissez votre siège</h3>
-        <input type="hidden" name="siege" id="selected-seat" required>
-        <div class="seat-map" id="seat-map"></div>
-        <div class="legend">
-          <span style="display:inline-block;width:15px;height:15px;background:#CCBEAA;border-radius:3px;margin-right:5px;"></span> Sélectionné
-          <span style="display:inline-block;width:15px;height:15px;background:#ccc;border-radius:3px;margin-right:5px;"></span> Disponible
-          <span style="display:inline-block;width:15px;height:15px;background:#999;border-radius:3px;margin-right:5px;"></span> Occupé
+          <div class="aircraft" id="siege-container-<?= $vol['id_vol'] ?>" style="display: none;">
+            <h3>Choisissez votre siège</h3>
+            <input type="hidden" name="siege[<?= $vol['id_vol'] ?>]" id="selected-seat-<?= $vol['id_vol'] ?>" required>
+            <div class="seat-map" id="seat-map-<?= $vol['id_vol'] ?>"></div>
+            <div class="legend">
+              <span style="display:inline-block;width:15px;height:15px;background:#CCBEAA;border-radius:3px;margin-right:5px;"></span> Sélectionné
+              <span style="display:inline-block;width:15px;height:15px;background:#ccc;border-radius:3px;margin-right:5px;"></span> Disponible
+              <span style="display:inline-block;width:15px;height:15px;background:#999;border-radius:3px;margin-right:5px;"></span> Occupé
+            </div>
+          </div>
+
+          <div class="prix-final" id="prix-total-<?= $vol['id_vol'] ?>">
+            Prix total : <?= $vol['prix'] ?> €
+          </div>
+          <hr>
         </div>
-      </div>
-
-      <div class="prix-final">
-        Prix total : <span id="prix-total"><?= $vol['prix'] ?> €</span>
-      </div>
+      <?php endforeach; ?>
 
       <button type="submit" class="button">Procéder au paiement</button>
     </form>
   </main>
 
   <script>
-    const basePrice = <?= $vol['prix'] ?>;
-    const formuleRadios = document.querySelectorAll('input[name="formule"]');
-    const poidsCabine = document.getElementById('poids_cabine');
-    const poidsSoute = document.getElementById('poids_soute');
-    const priceDisplay = document.getElementById('prix-total');
-    const hiddenInput = document.getElementById('prix_base_hidden');
-    const siegeContainer = document.getElementById('siege-container');
-    const seatMap = document.getElementById('seat-map');
-    const souteContainer = document.getElementById('soute-container');
+    document.addEventListener('DOMContentLoaded', function () {
+      <?php foreach ($vols as $vol): ?>
+        const id = <?= $vol['id_vol'] ?>;
+        const basePrice = <?= $vol['prix'] ?>;
+        const formuleRadios = document.getElementsByName(`formule[${id}]`);
+        const poidsCabine = document.getElementById(`poids_cabine_${id}`);
+        const poidsSoute = document.getElementById(`poids_soute_${id}`);
+        const souteContainer = document.getElementById(`soute-container-${id}`);
+        const totalDisplay = document.getElementById(`prix-total-${id}`);
+        const seatMap = document.getElementById(`seat-map-${id}`);
+        const siegeContainer = document.getElementById(`siege-container-${id}`);
+        const seatInput = document.getElementById(`selected-seat-${id}`);
 
-    function updatePrice() {
-      let total = basePrice;
-      const formule = document.querySelector('input[name="formule"]:checked').value;
-      const cabine = parseInt(poidsCabine.value);
-      const soute = parseInt(poidsSoute ? poidsSoute.value : 0);
+        function updatePrice() {
+          let total = basePrice;
+          const formule = [...formuleRadios].find(r => r.checked).value;
+          const cabine = parseInt(poidsCabine.value);
+          const soute = parseInt(poidsSoute.value || 0);
 
-      if (formule === 'premium') {
-        total += 70;
-        siegeContainer.style.display = 'block';
-        souteContainer.style.display = 'block';
-        if (soute > 25) total += Math.ceil((soute - 25) / 5) * 40;
-      } else {
-        siegeContainer.style.display = 'none';
-        souteContainer.style.display = 'none';
-        if (cabine > 10) total += Math.min(((cabine - 10) / 5) * 30, 20);
-      }
-
-      priceDisplay.textContent = total.toFixed(2) + " €";
-      hiddenInput.value = total.toFixed(2);
-    }
-
-    function generateSeats() {
-      const leftCols = ['A', 'B'];
-      const middleCols = ['C', 'D', 'E'];
-      const rightCols = ['F', 'G'];
-      const reserved = [];
-      for (let i = 1; i <= 10; i++) {
-        [...leftCols, 'gap', ...middleCols, 'gap', ...rightCols].forEach(col => {
-          if (col === 'gap') {
-            const spacer = document.createElement('div');
-            spacer.classList.add('spacer');
-            seatMap.appendChild(spacer);
+          if (formule === 'premium') {
+            total += 70;
+            souteContainer.style.display = 'block';
+            siegeContainer.style.display = 'block';
+            if (soute > 25) total += Math.ceil((soute - 25) / 5) * 40;
           } else {
-            const seatCode = col + i;
-            const seat = document.createElement('div');
-            seat.classList.add('seat');
-            seat.textContent = seatCode;
-            if (reserved.includes(seatCode)) {
-              seat.classList.add('disabled');
-            } else {
-              seat.addEventListener('click', () => {
-                document.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
-                seat.classList.add('selected');
-                document.getElementById('selected-seat').value = seatCode;
-              });
-            }
-            seatMap.appendChild(seat);
+            souteContainer.style.display = 'none';
+            siegeContainer.style.display = 'none';
+            if (cabine > 10) total += Math.min(((cabine - 10) / 5) * 30, 20);
           }
-        });
-      }
-    }
 
-    formuleRadios.forEach(r => r.addEventListener('change', updatePrice));
-    poidsCabine.addEventListener('change', updatePrice);
-    if (poidsSoute) poidsSoute.addEventListener('change', updatePrice);
+          totalDisplay.textContent = 'Prix total : ' + total.toFixed(2) + ' €';
+        }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      generateSeats();
-      updatePrice();
+        function generateSeats() {
+          const leftCols = ['A', 'B'];
+          const middleCols = ['C', 'D', 'E'];
+          const rightCols = ['F', 'G'];
+          const reserved = [];
+          for (let i = 1; i <= 10; i++) {
+            [...leftCols, 'gap', ...middleCols, 'gap', ...rightCols].forEach(col => {
+              if (col === 'gap') {
+                const spacer = document.createElement('div');
+                spacer.classList.add('spacer');
+                seatMap.appendChild(spacer);
+              } else {
+                const seatCode = col + i;
+                const seat = document.createElement('div');
+                seat.classList.add('seat');
+                seat.textContent = seatCode;
+                if (reserved.includes(seatCode)) {
+                  seat.classList.add('disabled');
+                } else {
+                  seat.addEventListener('click', () => {
+                    seatMap.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+                    seat.classList.add('selected');
+                    seatInput.value = seatCode;
+                  });
+                }
+                seatMap.appendChild(seat);
+              }
+            });
+          }
+        }
+
+        [...formuleRadios].forEach(r => r.addEventListener('change', updatePrice));
+        poidsCabine.addEventListener('change', updatePrice);
+        poidsSoute.addEventListener('change', updatePrice);
+
+        generateSeats();
+        updatePrice();
+      <?php endforeach; ?>
     });
   </script>
 </body>
