@@ -15,7 +15,12 @@ unset($_SESSION['confirmation_messages']);
     <h1>Confirmation de réservation</h1>
     <ul>
         <?php foreach ($messages as $message): ?>
-            <li><?= htmlspecialchars($message) ?></li>
+    <li>
+  <?= htmlspecialchars($message['text']) ?>
+  <?php if (!empty($message['id_reservation'])): ?>
+    — <a href="facture.php?id_reservation=<?= $message['id_reservation'] ?>" target="_blank">📄 Télécharger la facture</a>
+  <?php endif; ?>
+</li>
         <?php endforeach; ?>
     </ul>
     <div style="margin-top: 20px;">

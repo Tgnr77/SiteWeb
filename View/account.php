@@ -113,7 +113,7 @@ $totalDepense = array_reduce($reservations, fn($c, $i) => $c + $i['prix'], 0);
             <p>🛬 Arrivée : <?= date('d/m/Y H:i', strtotime($res['date_arrivee'])) ?></p>
             <p>💶 Prix : <?= $res['prix'] ?> €</p>
             <p>ID réservation : <strong><?= $res['id_reservation'] ?></strong></p>
-            <a href="facture_pdf.php?id=<?= $res['id_reservation'] ?>" class="button" style="display:inline-block; margin-top:10px; padding:8px 16px; background:#2b6777; color:white; text-decoration:none; border-radius:20px;" target="_blank">📄 Télécharger la facture</a>
+            <a href="../Controller/facture.php?id_reservation=<?= $res['id_reservation'] ?>" class="button" style="display:inline-block; margin-top:10px; padding:8px 16px; background:#2b6777; color:white; text-decoration:none; border-radius:20px;" target="_blank">📄 Télécharger la facture</a>
           </div>
         <?php endforeach; ?>
       <?php else: ?>

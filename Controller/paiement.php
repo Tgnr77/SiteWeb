@@ -37,7 +37,7 @@ foreach ($vols as $vol_data) {
     $siege = trim($vol_data['siege'] ?? '');
 
     if ($id_vol <= 0) {
-        $messages[] = "ID de vol invalide.";
+        $messages[] = ['text' => "ID de vol invalide."];
         continue;
     }
 
@@ -47,7 +47,7 @@ foreach ($vols as $vol_data) {
     $prix_base = $stmt->fetchColumn();
 
     if ($prix_base === false) {
-        $messages[] = "Le vol $id_vol n'existe pas.";
+        $messages[] = ['text' => "Le vol $id_vol n'existe pas."];
         continue;
     }
 
@@ -55,7 +55,7 @@ foreach ($vols as $vol_data) {
     $check = $pdo->prepare("SELECT COUNT(*) FROM reservations WHERE id_vol = ? AND siege = ?");
     $check->execute([$id_vol, $siege]);
     if ($check->fetchColumn() > 0) {
-        $messages[] = "Le siège $siege pour le vol $id_vol est déjà réservé.";
+        $messages[] = ['text' => "Le siège $siege pour le vol $id_vol est déjà réservé."];
         continue;
     }
 
@@ -64,31 +64,35 @@ foreach ($vols as $vol_data) {
     if ($formule === 'premium') $prix_total += 50;
     $prix_total += max(0, $poids_soute * 10);
 
-    // Simulation de paiement (toujours réussi ici)
+    // Paiement simulé
     $paiement_ok = true;
 
     if ($paiement_ok) {
-    // Enregistrement de la réservation
-    $insert = $pdo->prepare("
-        INSERT INTO reservations (id_utilisateur, id_vol, formule, poids_cabine, poids_soute, siege, prix_total)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-    ");
-    $insert->execute([$user_id, $id_vol, $formule, $poids_cabine, $poids_soute, $siege, $prix_total]);
+        $insert = $pdo->prepare("
+            INSERT INTO reservations (id_utilisateur, id_vol, formule, poids_cabine, poids_soute, siege, prix_total)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $insert->execute([$user_id, $id_vol, $formule, $poids_cabine, $poids_soute, $siege, $prix_total]);
 
-    // Suppression du vol du panier après réservation
-    $delete = $pdo->prepare("DELETE FROM panier WHERE id_utilisateur = ? AND id_vol = ?");
-    $delete->execute([$user_id, $id_vol]);
+        // Récupération de l'ID de la réservation
+        $id_reservation = $pdo->lastInsertId();
 
-    // Log si rien n’a été supprimé
-    if ($delete->rowCount() === 0) {
-        error_log("⚠️ Aucun vol supprimé du panier : user $user_id, vol $id_vol");
+        // Suppression du panier
+        $delete = $pdo->prepare("DELETE FROM panier WHERE id_utilisateur = ? AND id_vol = ?");
+        $delete->execute([$user_id, $id_vol]);
+
+        if ($delete->rowCount() === 0) {
+            error_log("⚠️ Aucun vol supprimé du panier : user $user_id, vol $id_vol");
+        }
+
+        // Message enrichi
+        $messages[] = [
+            'text' => "Réservation confirmée pour le vol $id_vol (siège $siege).",
+            'id_reservation' => $id_reservation
+        ];
+    } else {
+        $messages[] = ['text' => "Échec du paiement pour le vol $id_vol."];
     }
-
-    // Message de confirmation
-    $messages[] = "Réservation confirmée pour le vol $id_vol (siège $siege).";
-} else {
-    $messages[] = "Échec du paiement pour le vol $id_vol.";
-}
 }
 
 // Stocker les messages pour confirmation.php
