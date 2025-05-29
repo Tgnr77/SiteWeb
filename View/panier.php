@@ -69,54 +69,83 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <section class="offers">
         <?php if (empty($vols_panier)): ?>
             <p class="error-message">Votre panier est vide.</p>
-    <div style="text-align:center; margin-top: 20px;">
-        <a href="account.php" class="return-button">← Retour à mon compte</a>
-    </div>
-<?php else: ?>
-
-<form action="reserver_vol.php" method="get">
-
-    <div style="text-align:center; margin-bottom:15px;">
-        <label>
-            <input type="checkbox" id="select-all"> Tout sélectionner
-        </label>
-    </div>
-
-    <?php foreach ($vols_panier as $vol): ?>
-        <div class="offer">
-            <!-- Formulaire de suppression placé en dehors du formulaire principal -->
-            <div class="delete-form">
-    <button class="delete-button" title="Supprimer ce vol"
-            onclick="supprimerVol(<?= $vol['id_panier'] ?>)">🗑️</button>
-        </div>
-
-            <!-- Détails du vol + case à cocher pour réservation -->
-            <div class="offer-details">
-                <h3><?= htmlspecialchars($vol['origine']) ?> - <?= htmlspecialchars($vol['destination']) ?></h3>
-                <p><strong>Départ :</strong> <?= htmlspecialchars($vol['date_depart']) ?></p>
-                <p><strong>Arrivée :</strong> <?= htmlspecialchars($vol['date_arrivee']) ?></p>
-                <p><strong>Prix :</strong> <?= $vol['prix'] ?> €</p>
+            <div style="text-align:center; margin-top: 20px;">
+                <a href="account.php" class="return-button">← Retour à mon compte</a>
+            </div>
+        <?php else: ?>
+        <form action="reserver_vol.php" method="get">
+            <div style="text-align:center; margin-bottom:15px;">
                 <label>
-                    <input type="checkbox" class="vol-checkbox" name="ids[]" value="<?= $vol['id_vol'] ?>">
-                    Réserver ce vol
+                    <input type="checkbox" id="select-all"> Tout sélectionner
                 </label>
             </div>
-        </div>
-    <?php endforeach; ?>
 
-    <div style="text-align: center; margin-top: 20px;">
-        <button type="submit" class="button">Valider la sélection</button>
-    </div>
+            <?php foreach ($vols_panier as $vol): ?>
+                <div class="offer" data-panier-id="<?= $vol['id_panier'] ?>">
+                    <div class="delete-form">
+                        <button type="button" class="delete-button" title="Supprimer ce vol"
+                                onclick="supprimerVol(<?= $vol['id_panier'] ?>)">🗑️</button>
+                    </div>
 
-</form>
-<?php endif; ?>
-</section>  
+                    <div class="offer-details">
+                        <h3><?= htmlspecialchars($vol['origine']) ?> - <?= htmlspecialchars($vol['destination']) ?></h3>
+                        <p><strong>Départ :</strong> <?= htmlspecialchars($vol['date_depart']) ?></p>
+                        <p><strong>Arrivée :</strong> <?= htmlspecialchars($vol['date_arrivee']) ?></p>
+                        <p><strong>Prix :</strong> <?= $vol['prix'] ?> €</p>
+                        <label>
+                            <input type="checkbox" class="vol-checkbox" name="ids[]" value="<?= $vol['id_vol'] ?>">
+                            Réserver ce vol
+                        </label>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="button">Valider la sélection</button>
+            </div>
+        </form>
+        <?php endif; ?>
+    </section>  
 </main>
 
 <script>
-    document.getElementById('select-all').addEventListener('change', function () {
+    document.getElementById('select-all')?.addEventListener('change', function () {
         document.querySelectorAll('.vol-checkbox').forEach(cb => cb.checked = this.checked);
     });
+
+    function supprimerVol(id_panier) {
+        if (confirm("Voulez-vous vraiment supprimer ce vol du panier ?")) {
+            fetch('../Controller/remove_from_cart.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: 'id_panier=' + encodeURIComponent(id_panier)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const element = document.querySelector(`[data-panier-id="${id_panier}"]`);
+                    if (element) element.remove();
+
+                    if (document.querySelectorAll('.offer').length === 0) {
+                        document.querySelector('.offers').innerHTML = `
+                            <p class="error-message">Votre panier est vide.</p>
+                            <div style="text-align:center; margin-top: 20px;">
+                                <a href="account.php" class="return-button">← Retour à mon compte</a>
+                            </div>
+                        `;
+                    }
+                } else {
+                    alert("Erreur : " + (data.error || "Suppression échouée."));
+                }
+            })
+            .catch(error => {
+                console.error("Erreur réseau :", error);
+                alert("Une erreur est survenue lors de la suppression : " + error.message);
+            });
+        }
+    }
 </script>
 </body>
 </html>
