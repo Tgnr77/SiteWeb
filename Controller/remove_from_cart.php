@@ -10,12 +10,12 @@ if (isset($_SESSION['utilisateur']['id']) && isset($_POST['id_panier'])) {
 
     $stmt = $pdo->prepare("DELETE FROM panier WHERE id_panier = :id_panier AND id_utilisateur = :id_utilisateur");
     $stmt->execute([
-        ':id_panier' => $id_panier,
-        ':id_utilisateur' => $user_id
+        'id_panier' => $id_panier,
+        'id_utilisateur' => $user_id
     ]);
 }
 
-// Si non connecté → suppression dans la session
+// Sinon → suppression dans la session (si panier anonyme)
 elseif (isset($_POST['id_vol']) && isset($_SESSION['panier'][$_POST['id_vol']])) {
     unset($_SESSION['panier'][$_POST['id_vol']]);
 }
