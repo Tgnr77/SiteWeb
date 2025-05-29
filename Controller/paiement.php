@@ -8,76 +8,67 @@ if (!isset($_SESSION['utilisateur']['id'])) {
     exit;
 }
 
-$user_id = $_SESSION['utilisateur']['id'];
-
-// Données reçues depuis reserver_vol.php
-$vols         = $_POST['vols'] ?? [];
-$formules     = $_POST['formule'] ?? [];
-$poids_cabine = $_POST['poids_cabine'] ?? [];
-$poids_soute  = $_POST['poids_soute'] ?? [];
-$sieges       = $_POST['siege'] ?? [];
-$prix_base    = $_POST['prix_base'] ?? [];
-
-if (empty($vols)) {
-    die("Aucun vol sélectionné pour le paiement.");
+if (!isset($_POST['vols']) || !is_array($_POST['vols'])) {
+    die("Aucune donnée reçue.");
 }
 
+$user_id = $_SESSION['utilisateur']['id'];
+$vols = $_POST['vols'];
 $messages = [];
 
-foreach ($vols as $id_vol) {
-    if (!is_numeric($id_vol)) continue;
+foreach ($vols as $vol_data) {
+    $id_vol = (int) ($vol_data['id_vol'] ?? 0);
+    $formule = $vol_data['formule'] ?? 'eco';
+    $poids_cabine = (int) ($vol_data['poids_cabine'] ?? 0);
+    $poids_soute = (int) ($vol_data['poids_soute'] ?? 0);
+    $siege = trim($vol_data['siege'] ?? '');
 
-    $formule = $formules[$id_vol] ?? 'eco';
-    $cabine  = (int)($poids_cabine[$id_vol] ?? 0);
-    $soute   = (int)($poids_soute[$id_vol] ?? 0);
-    $siege   = $sieges[$id_vol] ?? null;
-    $prix    = (float)($prix_base[$id_vol] ?? 0);
+    if ($id_vol <= 0) {
+        $messages[] = "ID de vol invalide.";
+        continue;
+    }
 
-    // Calcul du prix final
-    if ($formule === 'premium') {
-        $prix += 70;
-        if ($soute > 25) {
-            $prix += ceil(($soute - 25) / 5) * 40;
-        }
+    // Vérifier que le vol existe
+    $stmt = $pdo->prepare("SELECT prix FROM vols WHERE id_vol = ?");
+    $stmt->execute([$id_vol]);
+    $prix_base = $stmt->fetchColumn();
+
+    if ($prix_base === false) {
+        $messages[] = "Le vol $id_vol n'existe pas.";
+        continue;
+    }
+
+    // Vérifie si le siège est déjà pris
+    $check = $pdo->prepare("SELECT COUNT(*) FROM reservations WHERE id_vol = ? AND siege = ?");
+    $check->execute([$id_vol, $siege]);
+    if ($check->fetchColumn() > 0) {
+        $messages[] = "Le siège $siege pour le vol $id_vol est déjà réservé.";
+        continue;
+    }
+
+    // Calcul du prix total
+    $prix_total = $prix_base;
+    if ($formule === 'premium') $prix_total += 50;
+    $prix_total += max(0, $poids_soute * 10);
+
+    // Simulation de paiement (toujours réussi ici)
+    $paiement_ok = true;
+
+    if ($paiement_ok) {
+        $insert = $pdo->prepare("
+            INSERT INTO reservations (id_utilisateur, id_vol, formule, poids_cabine, poids_soute, siege, prix_total)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ");
+        $insert->execute([$user_id, $id_vol, $formule, $poids_cabine, $poids_soute, $siege, $prix_total]);
+
+        $messages[] = "Réservation confirmée pour le vol $id_vol (siège $siege).";
     } else {
-        if ($cabine > 10) {
-            $prix += min((($cabine - 10) / 5) * 30, 20);
-        }
-        $siege = null; // Pas de siège en formule eco
+        $messages[] = "Échec du paiement pour le vol $id_vol.";
     }
-
-    // Vérification disponibilité du siège
-    if ($siege) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM reservations WHERE id_vol = ? AND siege = ?");
-        $stmt->execute([$id_vol, $siege]);
-        if ($stmt->fetchColumn() > 0) {
-            $messages[] = "❌ Le siège <strong>$siege</strong> pour le vol <strong>ID $id_vol</strong> est déjà réservé.";
-            continue;
-        }
-    }
-
-    // Insertion en base avec statut_paiement = 'validé'
-    $stmt = $pdo->prepare("
-        INSERT INTO reservations (
-            id_utilisateur, id_vol, formule, poids_cabine, poids_soute, siege, prix_total, statut_paiement, date_reservation
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, 'validé', NOW())
-    ");
-
-    $stmt->execute([
-        $user_id,
-        $id_vol,
-        $formule,
-        $cabine,
-        $soute,
-        $siege,
-        $prix
-    ]);
-
-    $messages[] = "✅ Réservation confirmée pour le vol <strong>ID $id_vol</strong>. Montant payé : <strong>$prix €</strong>.";
 }
 
-// Stockage des messages pour affichage dans confirmation.php
+// Stocker les messages pour confirmation.php
 $_SESSION['confirmation_messages'] = $messages;
 
-header('Location: ../confirmation.php');
+header('Location: confirmation.php');
 exit;
