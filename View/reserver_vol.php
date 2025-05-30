@@ -45,6 +45,38 @@ foreach ($ids as $id_vol) {
   <link rel="stylesheet" href="styles.css">
   <style>
   /* Styles CSS pour la page de réservation */
+  .seat-map {
+  display: grid;
+  grid-template-columns: repeat(9, auto); /* 7 sièges + 2 espaces */
+  gap: 5px;
+  margin: 10px 0;
+  flex-wrap: wrap;
+}
+.seat {
+  width: 30px;
+  height: 30px;
+  background: #ccc;
+  text-align: center;
+  line-height: 30px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 0.9em;
+}
+.seat.selected {
+  background: #CCBEAA;
+}
+.seat.disabled {
+  background: #999;
+  pointer-events: none;
+}
+.spacer {
+  width: 10px;
+}
+.legend {
+  margin-top: 10px;
+  font-size: 0.85em;
+}
+
   </style>
 </head>
 <body>
@@ -130,7 +162,7 @@ foreach ($ids as $id_vol) {
     const id = <?= $vol['id_vol'] ?>;
     const basePrice = <?= $vol['prix'] ?>;
     // Récupération des éléments du formulaire pour ce vol
-    const formuleRadios = document.getElementsByName(`formule[${id}]`);
+    const formuleRadios = document.getElementsByName(`vols[${id}][formule]`);
     const poidsCabine = document.getElementById(`poids_cabine_${id}`);
     const poidsSoute = document.getElementById(`poids_soute_${id}`);
     const souteContainer = document.getElementById(`soute-container-${id}`);
@@ -161,6 +193,7 @@ foreach ($ids as $id_vol) {
     }
 
     // Génère la carte des sièges et gère la sélection
+    seatMap.innerHTML = ''; // Nettoyage avant de regénérer
     function generateSeats() {
       const leftCols = ['A', 'B'];
       const middleCols = ['C', 'D', 'E'];
@@ -177,6 +210,7 @@ foreach ($ids as $id_vol) {
         const seat = document.createElement('div');
         seat.classList.add('seat');
         seat.textContent = seatCode;
+        // Vérifie si le siège est réservé
         if (reserved.includes(seatCode)) {
           seat.classList.add('disabled');
         } else {
