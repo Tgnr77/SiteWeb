@@ -1,3 +1,15 @@
+<?php
+require_once __DIR__ . '/../config/paths.php';
+require_once MODEL_PATH . 'db.php';
+session_start();
+
+$compteur = 0;
+if (isset($_SESSION['utilisateur']['id'])) {
+  $stmt = $pdo->prepare("SELECT COUNT(*) FROM panier WHERE id_utilisateur = ?");
+  $stmt->execute([$_SESSION['utilisateur']['id']]);
+  $compteur = $stmt->fetchColumn();
+}
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -90,10 +102,21 @@
             .then(data => {
               if (data.success) {
                 showToast('✔️ Vol ajouté au panier');
-                let count = parseInt(sessionStorage.getItem('panier_count') || '0');
-                sessionStorage.setItem('panier_count', count + 1);
-                const span = document.getElementById('panier-count');
-                if (span) span.textContent = `(${count + 1})`;
+                if (data.success) {
+  showToast('✔️ Vol ajouté au panier');
+
+  // Requête serveur pour actualiser le compteur réel
+  fetch('../Controller/get_cart_count.php')
+    .then(res => res.json())
+    .then(countData => {
+      const span = document.getElementById('cart-count');
+      if (span) span.textContent = `(${countData.count})`;
+    });
+
+  // (Optionnel) aussi garder localement si tu veux utiliser sessionStorage
+  let count = parseInt(sessionStorage.getItem('panier_count') || '0');
+  sessionStorage.setItem('panier_count', count + 1);
+}
               } else {
                 showToast('❌ ' + (data.error || 'Erreur inconnue'), true);
               }
@@ -162,13 +185,14 @@
 </head>
 <body>
   <header>
+    
     <div class="logo">
       <img src="zenith.webp" alt="Logo Zenith Airlines">
     </div>
     <nav>
       <a href="../View/index.html">Accueil</a>
       <a href="../View/account.php">Mon compte</a>
-      <a href="../View/panier.php">🛒 Voir le panier<span id="panier-count" style="margin-left: 5px; color: red;"></span></a>
+      <a href="panier.php">🛒 Voir le panier <span id="cart-count">(<?= $compteur ?>)</span></a>
       <a href="../View/contact.html">Nous contacter</a>
     </nav>
   </header>

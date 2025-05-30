@@ -28,39 +28,176 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC); // Récupère les résultats s
     <title>Mon Panier</title>
     <link rel="stylesheet" href="styles.css">
     <style>
-        /* Styles CSS pour l'affichage du panier */
-        .offer {
-            position: relative;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            padding: 15px;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-            background: white;
-        }
+       body {
+  font-family: 'Arial', sans-serif;
+  background: #f9f9f9;
+  margin: 0;
+  padding: 0;
+}
 
-        .offer-details {
-            padding-right: 40px;
-        }
+header {
+  text-align: center;
+  padding: 30px 20px 10px;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
 
-        .delete-form {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-        }
+h1 {
+  margin: 0;
+  font-size: 2em;
+  color: #333;
+}
 
-        .delete-button {
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-            font-size: 20px;
-            line-height: 1;
-        }
+.offers {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 0 20px;
+}
 
-        .delete-button:hover {
-            transform: scale(1.2);
-        }
+.offer {
+  position: relative;
+  border-radius: 12px;
+  background-color: white;
+  padding: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-bottom: 25px;
+  transition: transform 0.2s;
+}
+
+.offer:hover {
+  transform: translateY(-3px);
+}
+
+.offer h3 {
+  font-size: 1.4em;
+  color: #444;
+  margin-bottom: 10px;
+}
+
+.offer p {
+  margin: 5px 0;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.offer input[type="checkbox"] {
+  margin-right: 8px;
+  transform: scale(1.2);
+}
+
+.delete-form {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.delete-button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9em;
+  font-weight: bold;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.delete-button:hover {
+  background-color: #c0392b;
+  transform: scale(1.05);
+}
+
+label {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 10px;
+  font-size: 0.95em;
+  color: #333;
+}
+
+.error-message {
+  text-align: center;
+  background: #ffe6e6;
+  color: #c0392b;
+  font-weight: bold;
+  padding: 12px 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  margin: 30px auto;
+}
+
+.return-button {
+  display: inline-block;
+  margin-top: 10px;
+  text-decoration: none;
+  font-weight: bold;
+  color: #3b3b99;
+  border-bottom: 1px dashed #3b3b99;
+}
+
+.return-button:hover {
+  color: #1c1c6c;
+}
+
+.button {
+  background-color: #CCBEAA;
+  color: white;
+  font-weight: bold;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+}
+
+.button:hover {
+  background-color: #e9bd7f;
+  transform: scale(1.05);
+}
+
+#select-all {
+  transform: scale(1.2);
+  margin-right: 8px;
+}
+.empty-cart-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 60px auto;
+  max-width: 400px;
+  padding: 40px 20px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.empty-cart-message {
+  background-color: #ffecec;
+  color: #c0392b;
+  font-weight: bold;
+  padding: 16px 24px;
+  border-radius: 8px;
+  text-align: center;
+  font-size: 1.2em;
+  margin-bottom: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.back-link {
+  color: #3b3b99;
+  font-weight: bold;
+  text-decoration: none;
+  border-bottom: 1px dashed #3b3b99;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: #1c1c6c;
+}
+
+
     </style>
 </head>
 <body>
@@ -70,10 +207,12 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC); // Récupère les résultats s
 <main>
     <section class="offers">
         <?php if (empty($vols_panier)): ?>
-            <p class="error-message">Votre panier est vide.</p>
-            <div style="text-align:center; margin-top: 20px;">
-                <a href="account.php" class="return-button">← Retour à mon compte</a>
-            </div>
+            <div class="empty-cart-container">
+  <div class="empty-cart-message">
+    🛒 Votre panier est vide.
+  </div>
+  <a href="account.php" class="back-link">← Retour à mon compte</a>
+</div>
         <?php else: ?>
         <form action="reserver_vol.php" method="get">
             <div style="text-align:center; margin-bottom:15px;">
@@ -87,7 +226,7 @@ $vols_panier = $stmt->fetchAll(PDO::FETCH_ASSOC); // Récupère les résultats s
                     <div class="delete-form">
                         <!-- Bouton pour supprimer un vol du panier -->
                         <button type="button" class="delete-button" title="Supprimer ce vol"
-                                onclick="supprimerVol(<?= $vol['id_panier'] ?>)">🗑️</button>
+                                onclick="supprimerVol(<?= $vol['id_panier'] ?>)">Supprimer</button>
                     </div>
 
                     <div class="offer-details">

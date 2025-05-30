@@ -44,37 +44,117 @@ foreach ($ids as $id_vol) {
   <title>Réservation des vols sélectionnés</title>
   <link rel="stylesheet" href="styles.css">
   <style>
-  /* Styles CSS pour la page de réservation */
-  .seat-map {
-  display: grid;
-  grid-template-columns: repeat(9, auto); /* 7 sièges + 2 espaces */
-  gap: 5px;
-  margin: 10px 0;
-  flex-wrap: wrap;
+  /* CONTENEUR PRINCIPAL */
+main.reservation-container {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  font-family: 'Arial', sans-serif;
+  color: #333;
 }
+
+h1, h2, h3 {
+  color: #444;
+}
+
+h2 {
+  margin-top: 30px;
+  margin-bottom: 10px;
+  font-size: 1.4em;
+}
+
+label {
+  display: inline-block;
+  margin: 10px 0 5px;
+  font-weight: bold;
+}
+
+input[type="radio"], select {
+  margin-right: 10px;
+}
+
+select {
+  padding: 6px 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+button.button {
+  display: block;
+  margin: 30px auto 0;
+  background-color: #CCBEAA;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 30px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button.button:hover {
+  background-color: #e9bd7f;
+  transform: scale(1.05);
+}
+
+/* SIÈGES */
+.seat-map {
+  display: grid;
+  grid-template-columns: repeat(9, auto);
+  gap: 5px;
+  margin: 20px 0;
+  justify-content: center;
+}
+
 .seat {
-  width: 30px;
-  height: 30px;
+  width: 35px;
+  height: 35px;
   background: #ccc;
   text-align: center;
-  line-height: 30px;
-  border-radius: 5px;
+  line-height: 35px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 0.9em;
+  font-weight: bold;
+  transition: background-color 0.3s;
 }
+
 .seat.selected {
   background: #CCBEAA;
+  color: white;
 }
+
 .seat.disabled {
   background: #999;
-  pointer-events: none;
+  cursor: not-allowed;
 }
+
 .spacer {
   width: 10px;
 }
+
 .legend {
+  display: flex;
+  gap: 20px;
   margin-top: 10px;
-  font-size: 0.85em;
+  font-size: 0.9em;
+  justify-content: center;
+}
+
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.prix-final {
+  font-weight: bold;
+  margin-top: 15px;
+  text-align: right;
+  font-size: 1.1em;
 }
 
   </style>
