@@ -25,8 +25,6 @@ if (empty($nom) || strlen($numero) !== 16 || strlen($cvv) !== 3) {
 }
 
 $user_id = $_SESSION['utilisateur']['id'];
-$vols = $_SESSION['donnees_vols'] ?? [];
-unset($_SESSION['donnees_vols']);
 $messages = [];
 
 foreach ($vols as $vol_data) {
