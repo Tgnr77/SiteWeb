@@ -9,32 +9,24 @@ if (!isset($_SESSION['utilisateur']['id'])) {
   exit;
 }
 
-// Récupère les IDs des vols sélectionnés depuis la requête GET
-$ids = $_GET['ids'] ?? [];
-
-if (empty($ids) || !is_array($ids)) {
+$id = $_GET['id'] ?? null;
+if (!$id || !is_numeric($id)) {
   die("Aucun vol sélectionné.");
 }
 
-// Filtre les IDs pour ne garder que les valeurs numériques
-$ids = array_filter($ids, fn($id) => is_numeric($id));
-if (empty($ids)) {
-  die("Vols invalides.");
+// Récupération du vol
+$stmt = $pdo->prepare("SELECT * FROM vols WHERE id_vol = ?");
+$stmt->execute([$id]);
+$vol = $stmt->fetch(PDO::FETCH_ASSOC);
+if (!$vol) {
+  die("Vol introuvable.");
 }
 
-// Prépare la requête pour récupérer les informations des vols sélectionnés
-$placeholders = implode(',', array_fill(0, count($ids), '?'));
-$stmt = $pdo->prepare("SELECT * FROM vols WHERE id_vol IN ($placeholders)");
-$stmt->execute($ids);
-$vols = $stmt->fetchAll(PDO::FETCH_ASSOC);
+// Récupère les sièges déjà réservés
+$stmt = $pdo->prepare("SELECT siege FROM reservations WHERE id_vol = ?");
+$stmt->execute([$id]);
+$reservedSeats = array_column($stmt->fetchAll(), 'siege');
 
-// Pour chaque vol, récupère les sièges déjà réservés
-$reservedSeatsPerVol = [];
-foreach ($ids as $id_vol) {
-  $stmt = $pdo->prepare("SELECT siege FROM reservations WHERE id_vol = ?");
-  $stmt->execute([$id_vol]);
-  $reservedSeatsPerVol[$id_vol] = array_column($stmt->fetchAll(), 'siege');
-}
 ?>
 
 <!DOCTYPE html>
@@ -165,7 +157,6 @@ button.button:hover {
   <main class="reservation-container">
   <form action="formulaire_paiement.php" method="POST" id="reservation-form">
     
-    <?php foreach ($vols as $vol): ?>
     <!-- Champs cachés pour transmettre les infos du vol au formulaire de paiement -->
     <input type="hidden" name="vols[<?= $vol['id_vol'] ?>][id_vol]" value="<?= $vol['id_vol'] ?>">
     <input type="hidden" name="prix_base[<?= $vol['id_vol'] ?>]" value="<?= $vol['prix'] ?>">
@@ -228,7 +219,6 @@ button.button:hover {
   <hr>
 </div>
 
-    <?php endforeach; ?>
 
     <button type="submit" class="button">Procéder au paiement</button>
   </form>
@@ -236,84 +226,80 @@ button.button:hover {
 
   <script>
   document.addEventListener('DOMContentLoaded', function () {
-    // Injection des sièges réservés depuis PHP vers JS
-    const reservedSeats = <?= json_encode($reservedSeatsPerVol) ?>;
-    <?php foreach ($vols as $vol): ?>
-    const id = <?= $vol['id_vol'] ?>;
-    const basePrice = <?= $vol['prix'] ?>;
-    // Récupération des éléments du formulaire pour ce vol
-    const formuleRadios = document.getElementsByName(`vols[${id}][formule]`);
-    const poidsCabine = document.getElementById(`poids_cabine_${id}`);
-    const poidsSoute = document.getElementById(`poids_soute_${id}`);
-    const souteContainer = document.getElementById(`soute-container-${id}`);
-    const totalDisplay = document.getElementById(`prix-total-${id}`);
-    const seatMap = document.getElementById(`seat-map-${id}`);
-    const siegeContainer = document.getElementById(`siege-container-${id}`);
-    const seatInput = document.getElementById(`selected-seat-${id}`);
+    const reservedSeats = <?= json_encode($reservedSeats) ?>;
+const basePrice = <?= $vol['prix'] ?>;
 
-    // Met à jour le prix total en fonction des options choisies
-    function updatePrice() {
-      let total = basePrice;
-      const formule = [...formuleRadios].find(r => r.checked).value;
-      const cabine = parseInt(poidsCabine.value);
-      const soute = parseInt(poidsSoute.value || 0);
+const formuleRadios = document.getElementsByName('vols[<?= $vol['id_vol'] ?>][formule]');
+const poidsCabine = document.getElementById('poids_cabine_<?= $vol['id_vol'] ?>');
+const poidsSoute = document.getElementById('poids_soute_<?= $vol['id_vol'] ?>');
+const souteContainer = document.getElementById('soute-container-<?= $vol['id_vol'] ?>');
+const totalDisplay = document.getElementById('prix-total-<?= $vol['id_vol'] ?>');
+const seatMap = document.getElementById('seat-map-<?= $vol['id_vol'] ?>');
+const siegeContainer = document.getElementById('siege-container-<?= $vol['id_vol'] ?>');
+const seatInput = document.getElementById('selected-seat-<?= $vol['id_vol'] ?>');
 
-      if (formule === 'premium') {
-      total += 70;
-      souteContainer.style.display = 'block';
-      siegeContainer.style.display = 'block';
-      if (soute > 25) total += Math.ceil((soute - 25) / 5) * 40;
-      } else {
-      souteContainer.style.display = 'none';
-      siegeContainer.style.display = 'none';
-      if (cabine > 10) total += Math.min(((cabine - 10) / 5) * 30, 20);
-      }
+function updatePrice() {
+  let total = basePrice;
+  const formule = [...formuleRadios].find(r => r.checked).value;
+  const cabine = parseInt(poidsCabine.value);
+  const soute = parseInt(poidsSoute.value || 0);
 
-      totalDisplay.textContent = 'Prix total : ' + total.toFixed(2) + ' €';
-    }
+  if (formule === 'premium') {
+    total += 70;
+    souteContainer.style.display = 'block';
+    siegeContainer.style.display = 'block';
+    if (soute > 25) total += Math.ceil((soute - 25) / 5) * 40;
+  } else {
+    souteContainer.style.display = 'none';
+    siegeContainer.style.display = 'none';
+    if (cabine > 10) total += Math.min(((cabine - 10) / 5) * 30, 20);
+  }
 
-    // Génère la carte des sièges et gère la sélection
-    seatMap.innerHTML = ''; // Nettoyage avant de regénérer
-    function generateSeats() {
-      const leftCols = ['A', 'B'];
-      const middleCols = ['C', 'D', 'E'];
-      const rightCols = ['F', 'G'];
-      const reserved = reservedSeats[id] || [];
-      for (let i = 1; i <= 10; i++) {
-      [...leftCols, 'gap', ...middleCols, 'gap', ...rightCols].forEach(col => {
-        if (col === 'gap') {
+  totalDisplay.textContent = 'Prix total : ' + total.toFixed(2) + ' €';
+}
+
+function generateSeats() {
+  const leftCols = ['A', 'B'];
+  const middleCols = ['C', 'D', 'E'];
+  const rightCols = ['F', 'G'];
+  const reserved = reservedSeats || [];
+
+  seatMap.innerHTML = '';
+
+  for (let i = 1; i <= 10; i++) {
+    [...leftCols, 'gap', ...middleCols, 'gap', ...rightCols].forEach(col => {
+      if (col === 'gap') {
         const spacer = document.createElement('div');
         spacer.classList.add('spacer');
         seatMap.appendChild(spacer);
-        } else {
+      } else {
         const seatCode = col + i;
         const seat = document.createElement('div');
         seat.classList.add('seat');
         seat.textContent = seatCode;
-        // Vérifie si le siège est réservé
+
         if (reserved.includes(seatCode)) {
           seat.classList.add('disabled');
         } else {
           seat.addEventListener('click', () => {
-          seatMap.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
-          seat.classList.add('selected');
-          seatInput.value = seatCode;
+            seatMap.querySelectorAll('.seat').forEach(s => s.classList.remove('selected'));
+            seat.classList.add('selected');
+            seatInput.value = seatCode;
           });
         }
+
         seatMap.appendChild(seat);
-        }
-      });
       }
-    }
+    });
+  }
+}
 
-    // Ajoute les écouteurs d'événements pour mettre à jour le prix et l'affichage
-    [...formuleRadios].forEach(r => r.addEventListener('change', updatePrice));
-    poidsCabine.addEventListener('change', updatePrice);
-    poidsSoute.addEventListener('change', updatePrice);
+[...formuleRadios].forEach(r => r.addEventListener('change', updatePrice));
+poidsCabine.addEventListener('change', updatePrice);
+poidsSoute.addEventListener('change', updatePrice);
 
-    generateSeats();
-    updatePrice();
-    <?php endforeach; ?>
+generateSeats();
+updatePrice();
   });
   </script>
   <!-- Script dupliqué, peut être supprimé car déjà présent ci-dessus -->
